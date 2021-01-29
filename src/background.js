@@ -3,6 +3,7 @@
 import {app, protocol, BrowserWindow} from 'electron'
 import {createProtocol} from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
+import path from "path";
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -12,10 +13,12 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 async function createWindow() {
+    let icon = path.join(__static, process.env.WEBPACK_DEV_SERVER_URL ? 'img/icons/icon-dev.png' : 'img/icons/icon.png');
     // Create the browser window.
     const win = new BrowserWindow({
         width: 1400,
         height: 800,
+        icon,
         autoHideMenuBar: true,
         webPreferences: {
             enableRemoteModule: true,
