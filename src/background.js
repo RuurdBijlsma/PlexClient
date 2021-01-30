@@ -18,6 +18,8 @@ async function createWindow() {
     const win = new BrowserWindow({
         width: 1400,
         height: 800,
+        frame: false,
+        backgroundColor: '#1e1c1f',
         icon,
         autoHideMenuBar: true,
         webPreferences: {

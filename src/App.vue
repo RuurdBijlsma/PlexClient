@@ -1,8 +1,20 @@
 <template>
-    <v-app>
-        <v-app-bar app>
-            App
-        </v-app-bar>
+    <v-app class="app" :style="{
+        '--primary': themeColors.primary,
+        '--foreground': themeColors.foreground,
+        '--softForeground':themeColors.softForeground,
+        '--softBackground': themeColors.softBackground,
+        '--softerBackground':themeColors.softerBackground,
+        '--secondary': themeColors.secondary,
+    }">
+        <div>
+            <div class="background" :style="{
+                backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
+                transition: `background-image ${bgTransition}`,
+            }"/>
+            <div class="blur"/>
+        </div>
+        <app-bar/>
         <v-main>
             <router-view/>
         </v-main>
@@ -10,8 +22,79 @@
 </template>
 
 <script>
+import AppBar from "@/components/AppBar";
+import {mapActions, mapGetters, mapState} from "vuex";
+import Utils from "@/js/Utils";
+
 export default {
     name: 'App',
-    data: () => ({}),
+    components: {AppBar},
+    data: () => ({
+        bgTransition: '0s',
+        bgImg: {
+            dark: '',
+            light: '',
+        },
+    }),
+    beforeDestroy() {
+        document.removeEventListener('keypress', this.devListener);
+    },
+    async mounted() {
+        this.initializeAuth().then(() => {
+            this.updateUserInfo();
+            this.updateServerInfo();
+        });
+        document.addEventListener('keypress', this.devListener);
+        console.log('store', this.$store);
+        console.log('route', this.$route);
+        setTimeout(() => {
+            this.bgTransition = '.6s';
+        }, 500);
+        Utils.getCachedBackgrounds().then(bg => this.bgImg = bg);
+    },
+    methods: {
+        devListener(e) {
+            if (e.key === '`' && this.platform === 'electron')
+                this.$store.dispatch('openDevTools');
+            if (e.key === 'r' && e.ctrlKey)
+                location.reload();
+        },
+        ...mapActions(['initializeAuth', 'updateUserInfo', 'updateServerInfo']),
+    },
+    computed: {
+        ...mapGetters(['themeColors']),
+        ...mapState({
+            platform: state => state.platform.type,
+        }),
+    },
+    watch: {
+        '$vuetify.theme.dark'() {
+            localStorage.darkTheme = this.$vuetify.theme.dark;
+        },
+    },
 };
 </script>
+<style>
+html {
+    overflow-y: auto;
+}
+
+.background, .blur {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+.background {
+    background-size: cover !important;
+    background-position: center !important;
+    transition: background-image 1s;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.6) 95%);
+}
+
+.blur {
+    backdrop-filter: blur(3.5vw) saturate(100%);
+}
+</style>
