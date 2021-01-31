@@ -11,5 +11,8 @@ export default {
         },
         setPlatformPlaying: ({state}, playing) => {
         },
+        login(){
+
+        },
     },
 }

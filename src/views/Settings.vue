@@ -1,72 +1,133 @@
 <template>
-    <div class="login">
-        <v-form class="login-form" ref="form" @submit.prevent="submit">
-            <h1 class="mb-4">Settings</h1>
-            <div class="login-flex">
-                <v-text-field v-model="$store.state.plex.host"
-                              :rules="rules.host"
-                              class="mb-4 mr-2"
-                              outlined
-                              hide-details="auto"
-                              label="Host"/>
-                <v-text-field v-model="$store.state.plex.port"
-                              :rules="rules.port"
-                              class="mb-4 ml-2"
-                              outlined
-                              type="number"
-                              hide-details="auto"
-                              label="Port"/>
+    <div class="settings">
+        <h2>Settings</h2>
+        <v-divider class="mb-3"></v-divider>
+        <div class="login">
+            <h3 class="mt-3 mb-3">Account</h3>
+            <div v-if="!tvLoggedIn && server === null">
+                <v-btn @click="login" color="primary" rounded :loading="loginLoading" outlined>
+                    <v-icon class="mr-2">mdi-plex</v-icon>
+                    Login in to Plex
+                </v-btn>
+                <v-btn v-if="loginLoading" icon @click="cancelLogin">
+                    <v-icon>mdi-close</v-icon>
+                </v-btn>
             </div>
-            <v-text-field v-model="$store.state.plex.credentials.username"
-                          :rules="rules.name"
-                          class="mb-4"
-                          outlined
-                          hide-details="auto"
-                          label="Username"/>
-            <v-text-field v-model="$store.state.plex.credentials.password"
-                          :rules="rules.pass"
-                          class="mb-4"
-                          outlined
-                          hide-details="auto"
-                          label="Password"/>
-            <p class="caption" v-if="authFailed">Authentication failed</p>
-            <div class="login-flex">
-                <v-spacer/>
-                <v-btn type="submit" text>Login</v-btn>
+            <div v-else>
+                <v-list-item>
+                    <v-list-item-avatar>
+                        <v-avatar>
+                            <v-img :src="user.image"></v-img>
+                        </v-avatar>
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                        <v-list-item-title>{{ user.username }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ user.email }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                    <v-list-item-action>
+                        <v-btn @click="logout" text>Log out</v-btn>
+                    </v-list-item-action>
+                </v-list-item>
             </div>
-        </v-form>
+        </div>
+        <div class="server-list" v-if="tvServers.length > 0">
+            <h3 class="mt-3 mb-3">Servers</h3>
+            <v-card v-for="tvServer in tvServers" outlined>
+                <v-card-title>
+                    <v-icon color="primary" class="mr-2" v-if="server.clientIdentifier === tvServer.clientIdentifier">
+                        mdi-check
+                    </v-icon>
+                    {{ tvServer.name }}
+                </v-card-title>
+                <v-card-subtitle>{{ tvServer.product }} • {{ tvServer.device }} • {{
+                        tvServer.platform
+                    }}
+                </v-card-subtitle>
+                <v-card-text>
+                    <div>Created at: <span class="server-value">{{ toDateString(tvServer.createdAt) }}</span></div>
+                    <div>Public address: <span class="server-value">{{ tvServer.publicAddress }}</span></div>
+                    <div>Port: <span class="server-value">{{ getServerPort(tvServer) }}</span></div>
+                    <div>Currently local:
+                        <span class="server-value" v-if="tvServer.publicAddress === publicIp">
+                            <v-icon small color="success">mdi-lan</v-icon>
+                            Yes
+                        </span>
+                        <span class="server-value" v-else>
+                            <v-icon small color="primary">mdi-earth</v-icon>
+                            No
+                        </span>
+                    </div>
+                </v-card-text>
+                <v-card-actions v-if="tvServers.length > 1">
+                    <v-spacer></v-spacer>
+                    <v-btn @click="markPrimaryServer(tvServer)" text color="primary">Mark as primary server</v-btn>
+                </v-card-actions>
+            </v-card>
+        </div>
     </div>
 </template>
 
 <script>
+import {mapActions, mapGetters, mapState} from "vuex";
+
 export default {
-    name: 'Login',
+    name: 'Settings',
     data: () => ({
-        rules: {
-            host: [v => !!v || 'Required'],
-            port: [v => !!v || 'Required'],
-            name: [v => !!v || 'Required'],
-            pass: [v => !!v || 'Required'],
-        },
-        authFailed: false,
+        loginLoading: false,
     }),
     methods: {
-        async submit() {
-            await this.$store.dispatch('initializeAuth');
+        logout() {
+            this.$store.commit('user', {
+                email: '',
+                profile: null,
+                services: null,
+                image: '',
+                title: '',
+                username: '',
+                uuid: '',
+            });
+            this.$store.commit('server', null);
+            this.$store.commit('auth', null)
+            this.$store.commit('services', []);
         },
+        cancelLogin() {
+            this.resetPlexLogin();
+            this.loginLoading = false;
+        },
+        async login() {
+            this.loginLoading = true;
+            await this.ensureAuth();
+            this.updateUserInfo().then();
+            this.updateServices().then();
+            this.loginLoading = false;
+        },
+        toDateString(d) {
+            return new Date(d).toDateString();
+        },
+        ...mapActions(['markPrimaryServer', 'ensureAuth', 'updateUserInfo', 'updateServices', 'resetPlexLogin']),
+    },
+    computed: {
+        ...mapGetters(['tvServers', 'tvLoggedIn', "getServerPort"]),
+        ...mapState({
+            server: state => state.plex.server,
+            user: state => state.plex.user,
+            publicIp: state => state.plex.publicIp,
+        }),
     },
 }
 </script>
 <style scoped>
-.login {
-    padding: 20px;
+.settings {
+    padding: 10px 30px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.login-form {
-    max-width: 500px;
+.server-list {
+
 }
 
-.login-flex {
-    display: flex;
+.server-value {
+    color: var(--foreground);
 }
 </style>

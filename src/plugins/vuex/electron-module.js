@@ -1,7 +1,5 @@
 import electron, {remote, shell} from 'electron'
-import Directories from "../../js/Directories";
 import path from "path";
-import {PlexOauth} from "plex-oauth";
 import http from "http";
 import qs from 'qs';
 
@@ -9,12 +7,13 @@ const express = window.require('express');
 
 export default {
     state: {
-        server: null,
+        httpServer: null,
         type: 'electron',
         playingIcons: [],
         pausedIcons: [],
     },
     mutations: {
+        httpServer: (state, httpServer) => state.httpServer = httpServer,
         playIcons(state, {playIcon, pauseIcon, prevIcon, nextIcon}) {
             state.playingIcons = [prevIcon, pauseIcon, nextIcon];
             state.pausedIcons = [prevIcon, playIcon, nextIcon];
@@ -58,7 +57,13 @@ export default {
         async minimizeWindow({}) {
             remote.getCurrentWindow().minimize();
         },
-        async firstLogin({state, commit}) {
+        resetPlexLogin({state, commit}) {
+            if (state.server) {
+                state.server.close();
+                commit('server', null);
+            }
+        },
+        async login({state, commit}) {
             const port = 29672;
             let info = {
                 clientId: "RuurdPlexClient",            // This is a unique identifier used to identify your app with Plex.
@@ -92,16 +97,16 @@ export default {
 
             await shell.openExternal(authUrl)
 
-            if (state.server !== null)
-                state.server.close();
+            if (state.httpServer !== null)
+                state.httpServer.close();
 
             const app = express();
-            const server = http.createServer(app);
+            const httpServer = http.createServer(app);
 
             return new Promise(resolve => {
                 app.get('/', async (req, res) => {
                     resolve(auth);
-                    server?.close();
+                    httpServer?.close();
                     remote.getCurrentWindow().focus();
                     res.send(`
                         <html lang="en">
@@ -116,8 +121,8 @@ export default {
                     `);
                 });
 
-                commit('server', server);
-                server.listen(port, () => {
+                commit('httpServer', httpServer);
+                httpServer.listen(port, () => {
                     console.log('listening on *:' + port);
                 });
             })

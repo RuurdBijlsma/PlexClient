@@ -5,8 +5,9 @@
         <div class="app-bar-content">
             <div :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
                  class="text-logo"/>
-            <div class="links">
-                <router-link class="no-drag" color="foreground" to="/" exact>Shows</router-link>
+            <div class="links" v-if="canQuery">
+                <router-link class="no-drag" color="foreground" to="/" exact>Home</router-link>
+                <router-link class="no-drag" color="foreground" to="/shows" exact>Shows</router-link>
                 <router-link class="no-drag" to="/movies">Movies</router-link>
                 <v-menu open-on-hover offset-y content-class="elevation-0">
                     <template v-slot:activator="{ on, attrs }">
@@ -17,7 +18,7 @@
                         Library <v-icon>mdi-chevron-down</v-icon>
                     </span>
                     </template>
-                    <v-list color="transparent" rounded dense class="no-drag">
+                    <v-list rounded dense class="no-drag">
                         <v-list-item to="/library/shows">
                             <v-list-item-icon>
                                 <v-icon>mdi-television-classic</v-icon>
@@ -107,7 +108,7 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 
 export default {
     name: "AppBar",
@@ -115,6 +116,7 @@ export default {
         ...mapActions(['closeWindow', 'minimizeWindow']),
     },
     computed: {
+        ...mapGetters(['canQuery']),
         ...mapState({
             platform: state => state.platform.type,
         }),
