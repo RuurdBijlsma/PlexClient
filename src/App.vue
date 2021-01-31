@@ -27,6 +27,7 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// Windows media controls integration
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
 // Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
