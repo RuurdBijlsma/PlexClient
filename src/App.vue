@@ -27,6 +27,7 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// Make objects returned by /library/onDeck etc nicer (custom class <Video> maybe)
 // Windows media controls integration
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
