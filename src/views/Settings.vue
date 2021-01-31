@@ -98,16 +98,19 @@ export default {
             this.loginLoading = true;
             await this.ensureAuth();
             this.updateUserInfo().then();
-            this.updateServices().then();
+            this.updateServices().then(()=>{
+                if (this.canQuery)
+                    this.updateSections().then();
+            });
             this.loginLoading = false;
         },
         toDateString(d) {
             return new Date(d).toDateString();
         },
-        ...mapActions(['markPrimaryServer', 'ensureAuth', 'updateUserInfo', 'updateServices', 'resetPlexLogin']),
+        ...mapActions(['markPrimaryServer', 'ensureAuth', 'updateUserInfo', 'updateServices', 'resetPlexLogin', 'updateSections']),
     },
     computed: {
-        ...mapGetters(['tvServers', 'tvLoggedIn', "getServerPort"]),
+        ...mapGetters(['tvServers', 'tvLoggedIn', "getServerPort", 'canQuery']),
         ...mapState({
             server: state => state.plex.server,
             user: state => state.plex.user,

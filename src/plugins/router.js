@@ -14,7 +14,12 @@ const routes = [
         path: '/settings',
         name: 'Settings',
         component: () => import('../views/Settings')
-    }
+    },
+    {
+        path: '/library/:key/:directory?',
+        name: 'Library',
+        component: () => import('../views/Library')
+    },
 ]
 
 const router = new VueRouter({

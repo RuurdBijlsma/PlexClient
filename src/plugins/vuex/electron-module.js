@@ -66,8 +66,8 @@ export default {
         async login({state, commit}) {
             const port = 29672;
             let info = {
-                clientId: "RuurdPlexClient",            // This is a unique identifier used to identify your app with Plex.
-                name: "Ruurd's Plex Client",                 // Name of your application
+                clientId: "RuurdPlexClient",                    // This is a unique identifier used to identify your app with Plex.
+                name: "Ruurd's Plex Client",                    // Name of your application
                 device: "Plex Web",                             // The type of device your application is running on
                 version: "0.1.0",                               // Version of your application
                 forwardUrl: `http://localhost:${port}`,         // Url to forward back to after signing in.

@@ -7,8 +7,11 @@
                  class="text-logo"/>
             <div class="links" v-if="canQuery">
                 <router-link class="no-drag" color="foreground" to="/" exact>Home</router-link>
-                <router-link class="no-drag" color="foreground" to="/shows" exact>Shows</router-link>
-                <router-link class="no-drag" to="/movies">Movies</router-link>
+                <router-link class="no-drag" color="foreground"
+                             :to="`/section/${section.key}`" exact
+                             v-for="section in sections">
+                    {{ section.title }}
+                </router-link>
                 <v-menu open-on-hover offset-y content-class="elevation-0">
                     <template v-slot:activator="{ on, attrs }">
                     <span class="no-drag library-link"
@@ -19,20 +22,13 @@
                     </span>
                     </template>
                     <v-list rounded dense class="no-drag">
-                        <v-list-item to="/library/shows">
+                        <v-list-item :to="`/library/${section.key}`" v-for="section in sections">
                             <v-list-item-icon>
-                                <v-icon>mdi-television-classic</v-icon>
+                                <v-icon v-if="section.type === 'show'">mdi-television-classic</v-icon>
+                                <v-icon v-else>mdi-movie-open-outline</v-icon>
                             </v-list-item-icon>
                             <v-list-item-content>
-                                <v-list-item-title>TV library</v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                        <v-list-item to="/library/movies">
-                            <v-list-item-icon>
-                                <v-icon>mdi-movie-open-outline</v-icon>
-                            </v-list-item-icon>
-                            <v-list-item-content>
-                                <v-list-item-title>Movie library</v-list-item-title>
+                                <v-list-item-title>{{ section.title }}</v-list-item-title>
                             </v-list-item-content>
                         </v-list-item>
                     </v-list>
@@ -119,6 +115,7 @@ export default {
         ...mapGetters(['canQuery']),
         ...mapState({
             platform: state => state.platform.type,
+            sections: state => state.plex.content.sections,
         }),
     },
 }

@@ -23,6 +23,7 @@ async function createWindow() {
         icon,
         autoHideMenuBar: true,
         webPreferences: {
+            webSecurity:false,
             enableRemoteModule: true,
             // Use pluginOptions.nodeIntegration, leave this alone
             // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -60,6 +61,7 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
+    app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
     if (isDevelopment && !process.env.IS_TEST) {
         // Install Vue Devtools
         try {

@@ -28,7 +28,7 @@ export default class Utils {
 
     static async getCachedBackgrounds() {
         let bgsInCache = await get('bgsInCache') ?? 0;
-        let useNew = bgsInCache === 0 ? true : Math.random() < 0.2;
+        let useNew = bgsInCache === 0 ? true : Math.random() < 0.1;
         if (useNew) {
             try {
                 console.log("Getting new background");

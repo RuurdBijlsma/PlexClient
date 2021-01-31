@@ -3,6 +3,7 @@
         '--primary': themeColors.primary,
         '--foreground': themeColors.foreground,
         '--softForeground':themeColors.softForeground,
+        '--hardBackground': themeColors.hardBackground,
         '--softBackground': themeColors.softBackground,
         '--softerBackground':themeColors.softerBackground,
         '--secondary': themeColors.secondary,
@@ -13,8 +14,9 @@
                 transition: `background-image ${bgTransition}`,
             }"/>
             <div class="blur"/>
+            <div class="gradient" :scrolled="scrollY > 50"/>
         </div>
-        <app-bar/>
+        <app-bar class="appbar"/>
         <v-main>
             <router-view/>
         </v-main>
@@ -27,12 +29,13 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
-// Make objects returned by /library/onDeck etc nicer (custom class <Video> maybe)
+// Make MediaItem work with more item types
+
+// Implement /library/shows
 // Windows media controls integration
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
 // Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
-// Implement /library/shows
 // Implement /library/movies
 // Implement /shows
 // Implement /movies
@@ -66,40 +69,58 @@ export default {
             dark: '',
             light: '',
         },
+        scrollInterval: -1,
     }),
     beforeDestroy() {
         document.removeEventListener('keypress', this.devListener);
+        window.removeEventListener('scroll', this.updateScroll);
+        clearInterval(this.scrollInterval);
     },
     async mounted() {
-        this.updatePublicIp().then();
-        document.addEventListener('online', () => {
-            this.updatePublicIp();
-            console.log("online event");
-        });
-        if (this.$route.path !== '/settings' && this.server === null)
-            await this.$router.push('/settings');
-        document.addEventListener('keypress', this.devListener);
         console.log('store', this.$store);
         console.log('route', this.$route);
-        setTimeout(() => {
-            this.bgTransition = '.6s';
-        }, 500);
+
+        this.handleCode();
+        this.updatePublicIp().then();
+        document.addEventListener('online', () => this.updatePublicIp());
+        document.addEventListener('keypress', this.devListener);
+        window.addEventListener('scroll', this.updateScroll, false);
+        setTimeout(() => this.bgTransition = '.6s', 500);
         Utils.getCachedBackgrounds().then(bg => this.bgImg = bg);
+
+        this.$store.restored.then(() => {
+            if (this.$route.path !== '/settings' && this.server === null)
+                this.$router.push('/settings');
+            if (this.canQuery)
+                this.updateSections();
+        });
     },
     methods: {
+        handleCode() {
+            if (location.search.includes('?plex_auth=')) {
+                let otherTab = new BroadcastChannel('loginCode');
+                otherTab.postMessage('Plex auth completed');
+                otherTab.close();
+                window.close();
+            }
+        },
+        updateScroll() {
+            this.$store.commit('scrollY', window.scrollY)
+        },
         devListener(e) {
             if (e.key === '`' && this.platform === 'electron')
                 this.$store.dispatch('openDevTools');
             if (e.key === 'r' && e.ctrlKey)
                 location.reload();
         },
-        ...mapActions(['initializeAuth', 'updateUserInfo', 'updateServices', 'updatePublicIp']),
+        ...mapActions(['initializeAuth', 'updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections']),
     },
     computed: {
         ...mapGetters(['themeColors']),
         ...mapState({
             platform: state => state.platform.type,
             server: state => state.plex.server,
+            scrollY: state => state.scrollY,
         }),
     },
     watch: {
@@ -114,7 +135,11 @@ html {
     overflow-y: auto;
 }
 
-.background, .blur {
+.appbar {
+    z-index: 11;
+}
+
+.background, .blur, .gradient {
     position: fixed;
     height: 100%;
     width: 100%;
@@ -125,11 +150,23 @@ html {
 .background {
     background-size: cover !important;
     background-position: center !important;
-    transition: background-image 1s;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.6) 95%);
+    transition: background 1s;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 10%, rgba(0, 0, 0, 0.6) 95%);
 }
 
 .blur {
-    backdrop-filter: blur(3.5vw) saturate(100%);
+    backdrop-filter: blur(calc(10px + 2vw)) saturate(120%);
+}
+
+.gradient {
+    z-index: 5;
+    pointer-events: none;
+    transition: background-position-y 0.5s;
+    background-image: linear-gradient(to bottom, var(--hardBackground) 4%, rgba(0, 0, 0, 0) 18%);
+    background-position-y: -50px;
+}
+
+.gradient[scrolled] {
+    background-position-y: 0px;
 }
 </style>
