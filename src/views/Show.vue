@@ -1,6 +1,13 @@
 <template>
     <div v-if="show" class="show">
-        show
+        <plex-image
+            :src="show.thumb"
+            :width="200"
+            :height="300"/>
+        <h1>{{show.title2}}</h1>
+        <p>{{show.summary}}</p>
+        <p>Year: {{show.parentYear}}</p>
+        <media-item v-for="season in show.Metadata" :item="season"/>
     </div>
 </template>
 
@@ -11,7 +18,7 @@ import MediaItem from "@/components/MediaItem";
 
 export default {
     name: "Show",
-    components: {},
+    components: {PlexImage, MediaItem},
     data: () => ({}),
     async mounted() {
         console.log(5555, this.key);
@@ -20,7 +27,7 @@ export default {
     },
     methods: {
         async init() {
-            this.updateMetadata(this.key).then();
+            this.updateMetadata(this.key).then(console.log);
         },
         ...mapActions(['updateSectionLibrary', 'updateLibraryDirectory', 'updateMetadata']),
     },

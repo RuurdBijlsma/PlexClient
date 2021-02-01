@@ -64,7 +64,8 @@ export default {
             return {
                 'show': 10 / 15,
                 'movie': 10 / 15,
-            }[this.item.type]
+                'season': 10 / 15,
+            }[this.item.type] ?? 16 / 9;
         },
     }
 }
