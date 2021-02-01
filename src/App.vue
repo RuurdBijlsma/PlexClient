@@ -29,6 +29,7 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// Change :to in mediaitem to /show/9228 etc.
 // Make GlowImage component
 // Make MediaItem work with more item types
 // get sorts for a sections with /library/sections/key/sorts
