@@ -30,6 +30,8 @@ import Utils from "@/js/Utils";
 
 // TODO
 // Make MediaItem work with more item types
+// get sorts for a sections with /library/sections/key/sorts
+// get filters for a sections with /library/sections/key/filters
 
 // Implement /library/shows
 // Windows media controls integration
@@ -133,6 +135,7 @@ export default {
 <style>
 html {
     overflow-y: auto;
+    user-select: none;
 }
 
 .appbar {

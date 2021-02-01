@@ -16,6 +16,11 @@ const routes = [
         component: () => import('../views/Settings')
     },
     {
+        path: '/library/metadata/:key/children',
+        name: 'Show',
+        component: () => import('../views/Show')
+    },
+    {
         path: '/library/:key/:directory?',
         name: 'Library',
         component: () => import('../views/Library')

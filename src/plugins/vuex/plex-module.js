@@ -79,7 +79,7 @@ export default {
         async offlinePlexImg({}, url) {
             const cacheStorage = await caches.open(this.cacheName);
             let res = await cacheStorage.match(url);
-            if(!res)
+            if (!res)
                 return null;
             return URL.createObjectURL(await res.blob())
         },
@@ -89,6 +89,11 @@ export default {
             await cacheStorage.put(url, fresh);
             let res = await cacheStorage.match(url);
             return URL.createObjectURL(await res.blob());
+        },
+        async updateMetadata({state, dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/library/metadata/${key}/children`});
+            commit('content', {key: 'metadata' + key, content: content});
+            return content;
         },
         async updateLibraryDirectory({state, dispatch, commit}, {sectionKey, directory}) {
             let content = await dispatch('query', {url: `/library/sections/${sectionKey}/${directory}`});

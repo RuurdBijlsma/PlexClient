@@ -2,9 +2,15 @@
     <div v-if="library" class="library">
         <div class="top-buttons">
             <div class="left-buttons">
-                <v-select class="directory-select" v-model="dirKey"
+                <v-icon class="mr-3">mdi-filter-outline</v-icon>
+                <v-select class="directory-select mr-3" v-model="dirKey"
                           :items="library.Directory.filter(d => !d.secondary && !d.search)" item-text="title"
                           item-value="key" outlined
+                          rounded dense/>
+                <v-icon class="mr-3">mdi-sort</v-icon>
+                <v-select class="directory-select" v-model="sortProp"
+                          :items="sort" item-text="name"
+                          item-value="property" outlined
                           rounded dense/>
             </div>
             <div class="right-buttons">
@@ -27,7 +33,8 @@
             </div>
         </div>
         <div class="items">
-            <media-item v-for="item in directory.Metadata" :key="item.guid" :item="item" :size="160"/>
+            <media-item class="item" v-for="item in directory.Metadata" :key="item.guid" :item="item"
+                        :type="dirKey === 'folder' ? 'folder' : null" :size="160"/>
         </div>
     </div>
 </template>
@@ -38,10 +45,19 @@ import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 
 export default {
-    name: "ShowLibrary",
+    name: "Library",
     components: {MediaItem, PlexImage},
     data: () => ({
-        dirKey: 'all'
+        dirKey: 'all',
+        sort: [
+            {name: 'Title', property: 'title',},
+            {name: 'Year', property: 'year',},
+            {name: 'Release date', property: 'releaseDate',},
+            {name: 'Critic rating', property: 'title',},
+            {name: 'Date added', property: 'dateAdded',},
+            {name: 'Date viewed', property: 'dateViewed',},
+        ],
+        sortProp: 'title',
     }),
     async mounted() {
         await this.$store.restored;
@@ -73,6 +89,8 @@ export default {
             this.init();
         },
         dirKey() {
+            if (this.$route.params.directory !== this.dirKey)
+                this.$router.replace({params: {directory: this.dirKey, key: this.key}})
             this.updateLibraryDirectory({sectionKey: this.key, directory: this.dirKey});
         },
     },
@@ -93,11 +111,16 @@ export default {
 }
 
 .directory-select {
-    width: 200px;
+    width: 250px;
     display: inline-flex;
 }
 
 .items {
     padding-bottom: 40px;
+    text-align: center;
+}
+
+.item {
+    margin: 15px;
 }
 </style>
