@@ -3,7 +3,7 @@
                app elevation="0" color="transparent"
                class="app-bar">
         <div class="app-bar-content">
-            <div :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
+            <router-link to="/" :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
                  class="text-logo"/>
             <div class="links" v-if="canQuery">
                 <router-link class="no-drag" color="foreground" to="/" exact>Home</router-link>
@@ -138,6 +138,7 @@ export default {
 }
 
 .text-logo {
+    cursor: pointer;
     margin: 0 0 0 30px;
     width: 75px;
     height: 40px;

@@ -4,9 +4,11 @@
         '--imgHeight': imgHeight + 'px',
     }">
         <div class="image-container">
-            <plex-image v-if="item.thumb" class="img" :width="imgWidth" :height="imgHeight"
+            <plex-image v-if="item.thumb" class="img"
+                        :rounding="itemRounding"
+                        :width="imgWidth" :height="imgHeight"
                         :src="item.thumb"></plex-image>
-            <router-link class="item-buttons" :to="item.key">
+            <router-link class="item-buttons" :to="to">
                 <v-btn class="item-play" fab small color="primary">
                     <v-icon>mdi-play</v-icon>
                 </v-btn>
@@ -15,11 +17,12 @@
                 </v-btn>
             </router-link>
         </div>
-        <div class="item-bottom">
+        <div class="item-bottom" :style="{
+            textAlign: itemType === 'actor' ? 'center' : 'left',
+        }">
             <v-icon v-if="itemType === 'folder'" class="mr-2">mdi-folder</v-icon>
-            <router-link class="item-title" :to="item.key" :title="item.title">{{ item.title }}</router-link>
-            <div class="item-grey-text" v-if="itemType==='movie'">{{ item.year }}</div>
-            <div class="item-grey-text" v-else-if="itemType==='show'">{{ item.childCount }} seasons</div>
+            <router-link class="item-title" :to="to" :title="itemTitle">{{ itemTitle }}</router-link>
+            <div class="item-grey-text" v-for="subtitle of itemSubtitles" :title="subtitle">{{ subtitle }}</div>
         </div>
     </div>
 </template>
@@ -45,6 +48,27 @@ export default {
         },
     },
     computed: {
+        itemTitle() {
+            return {
+                'actor': this.item.tag,
+            }[this.itemType] ?? this.item.title;
+        },
+        itemSubtitles() {
+            return {
+                'show': [`${this.item.childCount} seasons`],
+                'movie': [this.item.year],
+                'season': [`${this.item.leafCount} episodes`],
+                'actor': [this.item.role?.replaceAll('|', ', ')],
+            }[this.itemType] ?? [];
+        },
+        to() {
+            return `/${this.itemType}/${this.item.ratingKey}`;
+        },
+        itemRounding() {
+            return {
+                'actor': '50%',
+            }[this.itemType] ?? '0.4vw';
+        },
         itemType() {
             return this.type ?? this.item.type ?? 'show';
         },
@@ -65,7 +89,8 @@ export default {
                 'show': 10 / 15,
                 'movie': 10 / 15,
                 'season': 10 / 15,
-            }[this.item.type] ?? 16 / 9;
+                'actor': 1,
+            }[this.itemType] ?? 16 / 9;
         },
     }
 }
@@ -87,7 +112,6 @@ export default {
 
 .img {
     position: absolute;
-    border-radius: 0.7vw;
     overflow: hidden;
     box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.2);
 }
@@ -103,7 +127,7 @@ export default {
     width: 100%;
     height: 100%;
     align-items: flex-end;
-    background-color: rgba(0, 0, 0, 0.4);
+    /*background-color: rgba(0, 0, 0, 0.4);*/
     transition: opacity 0.15s;
     cursor: pointer;
     text-decoration: none;
@@ -118,7 +142,7 @@ export default {
     text-overflow: ellipsis;
     white-space: nowrap;
     width: var(--width);
-    padding: 2px 5px 5px;
+    padding: 4px 5px 5px;
     z-index: 3;
     overflow: hidden;
 }
@@ -126,6 +150,7 @@ export default {
 .item-title {
     color: var(--foreground);
     text-decoration: none;
+    font-weight: 400;
 }
 
 .item-title:hover {
@@ -134,6 +159,10 @@ export default {
 
 .item-grey-text {
     opacity: 0.7;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width:100%;
 }
 
 </style>

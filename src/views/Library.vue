@@ -32,10 +32,12 @@
                 </v-tooltip>
             </div>
         </div>
-        <div class="items">
-            <media-item class="item" v-for="item in directory.Metadata" :key="item.guid" :item="item"
-                        :type="dirKey === 'folder' ? 'folder' : null" :size="160"/>
-        </div>
+        <v-lazy>
+            <div class="items">
+                <media-item :item="item" :type="dirKey === 'folder' ? 'folder' : null" :size="160"
+                            v-for="item in directory.Metadata" :key="item.guid" class="item"/>
+            </div>
+        </v-lazy>
     </div>
 </template>
 
@@ -121,6 +123,7 @@ export default {
 }
 
 .item {
-    margin: 15px;
+    margin: 8px 15px;
+    display: inline-flex;
 }
 </style>

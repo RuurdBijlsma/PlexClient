@@ -1,28 +1,29 @@
 <template>
-    <v-sheet class="plex-image" :style="{
+    <div class="plex-image" :style="{
         '--width': width + 'px',
         '--height': height + 'px',
+            borderRadius: rounding,
     }">
-        <v-img
-            class="vimg"
-            :lazy-src="lazySrc"
-            :src="fullSrc"
-            @load="loadingImg = false"
-            @error="loadingImg = true">
-        </v-img>
-        <div class="img-filter" :style="{
-            backdropFilter: loadingImg ? `blur(10px) saturate(130%)` : `blur(0) saturate(100%)`,
-            transition: `backdrop-filter ${transition}`,
-        }"/>
-    </v-sheet>
+        <glow-image :rounding="rounding" class="vimg" :width="width" :height="height" :src="fullSrc" v-if="glow"/>
+        <div class="vimg" v-else :style="{
+            backgroundImage: `url(${fullSrc})`,
+            borderRadius: rounding,
+        }"></div>
+    </div>
 </template>
 
 <script>
 import {mapActions, mapGetters} from "vuex";
+import GlowImage from "@/components/GlowImage";
 
 export default {
     name: "PlexImage",
+    components: {GlowImage},
     props: {
+        glow: {
+            type: Boolean,
+            default: false,
+        },
         src: {
             type: String,
             default: null,
@@ -40,9 +41,12 @@ export default {
             type: String,
             default: '.1s',
         },
+        rounding: {
+            type: String,
+            default: '0',
+        },
     },
     data: () => ({
-        loadingImg: true,
         lazySrc: '',
         fullSrc: '',
         transition: '',
@@ -109,9 +113,13 @@ export default {
 }
 
 .vimg {
+    background-color: rgba(0, 0, 0, 0.5);
     width: 100%;
     height: 100%;
     position: absolute;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
 }
 
 .img-filter {

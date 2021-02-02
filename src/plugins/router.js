@@ -16,7 +16,7 @@ const routes = [
         component: () => import('../views/Settings')
     },
     {
-        path: '/library/metadata/:key/children',
+        path: '/show/:key',
         name: 'Show',
         component: () => import('../views/Show')
     },

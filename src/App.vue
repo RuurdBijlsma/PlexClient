@@ -12,6 +12,7 @@
             <div class="background" :style="{
                 backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
                 transition: `background-image ${bgTransition}`,
+                maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.7 : 0.4}) 95%)`,
             }"/>
             <div class="blur"/>
             <div class="gradient" :scrolled="scrollY > 50"/>
@@ -29,6 +30,7 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// Add not found image to mediaitem (different per type)
 // Change :to in mediaitem to /show/9228 etc.
 // Make GlowImage component
 // Make MediaItem work with more item types
@@ -137,7 +139,18 @@ export default {
 <style>
 html {
     overflow-y: auto;
+    overflow-x: auto;
     user-select: none;
+    font-weight: 300;
+}
+
+.router-link-active {
+    color: white !important;
+    text-decoration: none;
+}
+
+.router-link-active:hover {
+    text-decoration: underline;
 }
 
 .appbar {
@@ -156,7 +169,6 @@ html {
     background-size: cover !important;
     background-position: center !important;
     transition: background 1s;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 10%, rgba(0, 0, 0, 0.6) 95%);
 }
 
 .blur {

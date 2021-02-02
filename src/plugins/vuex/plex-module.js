@@ -91,9 +91,19 @@ export default {
             return URL.createObjectURL(await res.blob());
         },
         async updateMetadata({state, dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/library/metadata/${key}`});
+            commit('content', {key: 'metadata' + key, content: content.Metadata[0]});
+            return content.Metadata[0];
+        },
+        async updateMetadataRelated({state, dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/library/metadata/${key}/related`});
+            commit('content', {key: 'metadataRelated' + key, content: content.Hub});
+            return content.Hub;
+        },
+        async updateMetadataChildren({state, dispatch, commit}, key) {
             let content = await dispatch('query', {url: `/library/metadata/${key}/children`});
-            commit('content', {key: 'metadata' + key, content: content});
-            return content;
+            commit('content', {key: 'metadataChildren' + key, content: content.Metadata});
+            return content.Metadata;
         },
         async updateLibraryDirectory({state, dispatch, commit}, {sectionKey, directory}) {
             let content = await dispatch('query', {url: `/library/sections/${sectionKey}/${directory}`});
