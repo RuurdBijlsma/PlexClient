@@ -214,6 +214,33 @@ export default {
                 }
             }).then(d => d.json());
         },
+        async login({dispatch}) {
+            let info = {
+                clientId: "RuurdPlexClient",
+                name: "Ruurd's Plex Client",
+            }
+            let auth = await fetch(
+                `https://plex.tv/api/v2/pins?strong=true&X-Plex-Product=${info.name}&X-Plex-Client-Identifier=${info.clientId}`, {
+                    method: 'POST',
+                    headers: {
+                        accept: 'application/json',
+                    },
+                }).then(d => d.json());
+
+            const authUrl = 'https://app.plex.tv/auth#?' +
+                qs.stringify({
+                    clientID: info.clientId,
+                    code: auth.code,
+                    forwardUrl: await dispatch('getRedirectUrl'),
+                    context: {
+                        device: {
+                            product: info.name,
+                        },
+                    },
+                });
+            await dispatch('goToUrl', authUrl);
+            return auth;
+        },
         async ensureAuth({commit, dispatch, getters}) {
             console.log("ENSURING AUTH");
             if (getters.tvLoggedIn)

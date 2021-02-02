@@ -1,5 +1,6 @@
 <template>
     <v-app class="app" :style="{
+        fontWeight: $vuetify.theme.dark ? 300 : 500,
         '--primary': themeColors.primary,
         '--foreground': themeColors.foreground,
         '--softForeground':themeColors.softForeground,
@@ -30,34 +31,31 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
-// Add not found image to mediaitem (different per type)
-// Change :to in mediaitem to /show/9228 etc.
-// Make GlowImage component
-// Make MediaItem work with more item types
-// get sorts for a sections with /library/sections/key/sorts
-// get filters for a sections with /library/sections/key/filters
-
-// Implement /library/shows
-// Windows media controls integration
-// Add setting to remove current wallpaper
-// Add setting to get new wallpaper
-// Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
 // Implement /library/movies
 // Implement /shows
 // Implement /movies
 // Implement /home
+
+// Add not found image to mediaitem (different per type)
+// Make MediaItem work with more item types
+// get sorts for a sections with /library/sections/key/sorts
+// get filters for a sections with /library/sections/key/filters
+
+// Windows media controls integration
+// Add setting to remove current wallpaper
+// Add setting to get new wallpaper
+// Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
 // Implement search (with autocomplete)
 // Fix close button
 // Implement season page
 // Implement episode / movie page
-// Implement cached (caches) blob getter (for thumbnails mostly)
-//   (can i make generalized get result instant and update when it's retrieved?)
 // Implement video player (video for web, vlc-video for electron) (big work)
 // Implement controls while browsing with animation when switching
-// Theme color based on artwork of episode page?
+// Theme color based on artwork of episode/show/movie page?
 // Improve icon (more contrast?) idk
 // Switch to bottom bar navigation for small screen
 // Implement server settings in settings (maybe steal settings layout from Plex)
+// Add sonarr domain input for similar shows linking
 // Keyboard shortcuts
 // Auto updater in release build
 // Playlists 'n stuff
@@ -65,6 +63,14 @@ import Utils from "@/js/Utils";
 // Add download for offline functionality
 // Improve new blurry background getting experience
 //   (maybe first time use default, then on load blurry background for next launch)
+
+
+// ----------------------------------------- DONE -----------------------------------------------
+// Change :to in mediaitem to /show/9228 etc.
+// Implement /library/shows
+// Make GlowImage component
+// Implement cached (caches) blob getter (for thumbnails mostly)
+//   (can i make generalized get result instant and update when it's retrieved?)
 
 export default {
     name: 'App',
@@ -141,11 +147,10 @@ html {
     overflow-y: auto;
     overflow-x: auto;
     user-select: none;
-    font-weight: 300;
 }
 
 .router-link-active {
-    color: white !important;
+    color: var(--foreground) !important;
     text-decoration: none;
 }
 

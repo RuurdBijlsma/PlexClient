@@ -60,13 +60,13 @@ export default {
         async setSrc() {
             if (navigator.onLine)
                 this.fullSrc = this.imgUrl;
-            // let offlineUrl = await this.offlinePlexImg(this.imgUrl);
-            // if (offlineUrl) {
-            //     this.transition = '0s';
-            //     this.fullSrc = offlineUrl;
-            // } else {
-            //     this.fullSrc = await this.onlinePlexImg(this.imgUrl);
-            // }
+            if (this.$store.state.platform.type === 'electron') {
+                let offlineUrl = await this.offlinePlexImg(this.imgUrl);
+                if (offlineUrl) {
+                    this.transition = '0s';
+                    this.fullSrc = offlineUrl;
+                }
+            }
         },
         ...mapActions(['onlinePlexImg', 'offlinePlexImg']),
     },

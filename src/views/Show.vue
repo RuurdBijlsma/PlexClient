@@ -13,7 +13,8 @@
             <h2 class="show-title">{{ show.title }}</h2>
             <p class="show-value">{{ show.year }}</p>
             <p class="show-summary">{{ show.summary }}</p>
-            <p class="show-detail">Studio: <span class="show-value">{{ show.studio }}</span></p>
+            <p class="show-detail">Studio:
+                <router-link class="show-value" to="/">{{ show.studio }}</router-link>
             <p class="show-detail">Genres:
                 <router-link class="show-value" to="/" v-for="genre in show.Genre" :key="genre.id">{{
                         genre.tag
@@ -57,7 +58,7 @@ export default {
             this.updateMetadataChildren(this.key).then(e => console.log('child', e));
             this.updateMetadataRelated(this.key).then(e => console.log('related', e));
         },
-        ...mapActions(['updateSectionLibrary', 'updateLibraryDirectory', 'updateMetadata', 'updateMetadataChildren','updateMetadataRelated']),
+        ...mapActions(['updateSectionLibrary', 'updateLibraryDirectory', 'updateMetadata', 'updateMetadataChildren', 'updateMetadataRelated']),
     },
     computed: {
         key() {
