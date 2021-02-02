@@ -77,14 +77,14 @@ export default {
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
         async offlinePlexImg({}, url) {
-            const cacheStorage = await caches.open(this.cacheName);
+            const cacheStorage = await caches.open('plex-img');
             let res = await cacheStorage.match(url);
             if (!res)
                 return null;
             return URL.createObjectURL(await res.blob())
         },
         async onlinePlexImg({state, dispatch, commit, getters}, url) {
-            const cacheStorage = await caches.open(this.cacheName);
+            const cacheStorage = await caches.open('plex-img');
             let fresh = await fetch(url);
             await cacheStorage.put(url, fresh);
             let res = await cacheStorage.match(url);
@@ -238,6 +238,7 @@ export default {
                         },
                     },
                 });
+            console.log(authUrl);
             await dispatch('goToUrl', authUrl);
             return auth;
         },

@@ -60,13 +60,18 @@ export default {
         async setSrc() {
             if (navigator.onLine)
                 this.fullSrc = this.imgUrl;
-            if (this.$store.state.platform.type === 'electron') {
-                let offlineUrl = await this.offlinePlexImg(this.imgUrl);
-                if (offlineUrl) {
-                    this.transition = '0s';
-                    this.fullSrc = offlineUrl;
-                }
-            }
+            // Can't because of cors
+            // if (this.$store.state.platform.type === 'electron') {
+            //     console.log("Offlining", this.imgUrl);
+            //     let offlineUrl = await this.offlinePlexImg(this.imgUrl);
+            //     console.log("Offline", offlineUrl);
+            //     if (offlineUrl) {
+            //         this.transition = '0s';
+            //         this.fullSrc = offlineUrl;
+            //     }else{
+            //         await this.onlinePlexImg(this.imgUrl);
+            //     }
+            // }
         },
         ...mapActions(['onlinePlexImg', 'offlinePlexImg']),
     },

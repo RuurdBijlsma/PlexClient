@@ -23,7 +23,7 @@ async function createWindow() {
         icon,
         autoHideMenuBar: true,
         webPreferences: {
-            webSecurity:false,
+            // webSecurity:false,
             enableRemoteModule: true,
             // Use pluginOptions.nodeIntegration, leave this alone
             // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info

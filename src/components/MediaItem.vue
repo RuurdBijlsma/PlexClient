@@ -159,10 +159,11 @@ export default {
 
 .item-grey-text {
     opacity: 0.7;
+    font-weight: 300;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width:100%;
+    max-width: 100%;
 }
 
 </style>

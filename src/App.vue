@@ -31,6 +31,8 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// implement /season
+// implement /movie
 // Implement /library/movies
 // Implement /shows
 // Implement /movies
@@ -41,7 +43,9 @@ import Utils from "@/js/Utils";
 // get sorts for a sections with /library/sections/key/sorts
 // get filters for a sections with /library/sections/key/filters
 
+// Find way around cors for offline images
 // Windows media controls integration
+// If show is in library of similar shows, show this visually and allow click on that show to go there
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
 // Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
