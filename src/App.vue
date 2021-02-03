@@ -33,8 +33,7 @@ import Utils from "@/js/Utils";
 // TODO
 // /show and /season can be one component, structure is similar
 // implement /season
-// implement /movie
-// Implement /library/movies
+// implement /movie & /episode
 // Implement /shows
 // Implement /movies
 // Implement /home
@@ -54,8 +53,6 @@ import Utils from "@/js/Utils";
 // Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
 // Implement search (with autocomplete)
 // Fix close button
-// Implement season page
-// Implement episode / movie page
 // Implement video player (video for web, vlc-video for electron) (big work)
 // Implement controls while browsing with animation when switching
 // Theme color based on artwork of episode/show/movie page?
@@ -73,6 +70,7 @@ import Utils from "@/js/Utils";
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Implement /library/movies
 // Change :to in mediaitem to /show/9228 etc.
 // Implement /library/shows
 // Make GlowImage component
