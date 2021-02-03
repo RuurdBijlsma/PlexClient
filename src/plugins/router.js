@@ -21,6 +21,11 @@ const routes = [
         component: () => import('../views/Show')
     },
     {
+        path: '/season/:key',
+        name: 'Season',
+        component: () => import('../views/Season')
+    },
+    {
         path: '/library/:key/:directory?',
         name: 'Library',
         component: () => import('../views/Library')

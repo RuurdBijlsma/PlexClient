@@ -31,6 +31,7 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// /show and /season can be one component, structure is similar
 // implement /season
 // implement /movie
 // Implement /library/movies
@@ -38,7 +39,9 @@ import Utils from "@/js/Utils";
 // Implement /movies
 // Implement /home
 
-// Add not found image to mediaitem (different per type)
+// make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
+// scrollIntoView scrolls vertically 🤮
+// Add not found image to mediaItem (different per type)
 // Make MediaItem work with more item types
 // get sorts for a sections with /library/sections/key/sorts
 // get filters for a sections with /library/sections/key/filters
@@ -129,7 +132,7 @@ export default {
             if (e.key === 'r' && e.ctrlKey)
                 location.reload();
         },
-        ...mapActions(['initializeAuth', 'updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections']),
+        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections']),
     },
     computed: {
         ...mapGetters(['themeColors']),
@@ -153,14 +156,14 @@ html {
     user-select: none;
 }
 
-.router-link-active {
-    color: var(--foreground) !important;
-    text-decoration: none;
-}
+/*.router-link-active {*/
+/*    color: var(--foreground) !important;*/
+/*    text-decoration: none;*/
+/*}*/
 
-.router-link-active:hover {
-    text-decoration: underline;
-}
+/*.router-link-active:hover {*/
+/*    text-decoration: underline;*/
+/*}*/
 
 .appbar {
     z-index: 11;

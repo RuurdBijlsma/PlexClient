@@ -1,16 +1,54 @@
 <template>
-    <div v-if="library" class="library">
+    <div class="library">
         <div class="top-buttons">
             <div class="left-buttons">
-                <v-icon class="mr-3">mdi-filter-outline</v-icon>
+                <v-menu offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn class="mr-3" icon v-bind="attrs" v-on="on">
+                            <v-icon>mdi-filter-outline</v-icon>
+                        </v-btn>
+                    </template>
+                    <v-list dense class="filter-list">
+                        <v-list-group sub-group v-for="filterObj in filters" @click="showFilter(filterObj.filter)">
+                            <template v-slot:activator>
+                                <v-list-item-title>{{ filterObj.title }}</v-list-item-title>
+                            </template>
+                            <v-list-item @click="selectSubFilter(filterObj.filter, subFilter)" class="sub-item"
+                                         v-for="subFilter in getFilter(filterObj.filter)">
+                                <v-list-item-icon>
+                                    <v-icon
+                                        v-if="filter.hasOwnProperty(filterObj.filter) && filter[filterObj.filter] === subFilter">
+                                        mdi-check
+                                    </v-icon>
+                                </v-list-item-icon>
+                                <v-list-item-title>
+                                    {{ subFilter.title }}
+                                </v-list-item-title>
+                            </v-list-item>
+                        </v-list-group>
+                    </v-list>
+                </v-menu>
+                <v-chip class="mr-3" v-if="filter.length === 2" close @click:close="filter = []">{{ filterName }}:
+                    {{ subFilterName }}
+                </v-chip>
                 <v-select class="directory-select mr-3" v-model="dirKey"
-                          :items="library.Directory.filter(d => !d.secondary && !d.search)" item-text="title"
+                          :items="directory.filter(d => !d.secondary && !d.search)" item-text="title"
                           item-value="key" outlined
                           rounded dense/>
-                <v-icon class="mr-3">mdi-sort</v-icon>
-                <v-select class="directory-select" v-model="sortProp"
-                          :items="sort" item-text="name"
-                          item-value="property" outlined
+                <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn :loading="sortLoading" @click="toggleSortDirection" class="mr-3" icon v-bind="attrs"
+                               v-on="on">
+                            <v-icon v-if="descendingSort">mdi-sort-numeric-descending</v-icon>
+                            <v-icon v-else>mdi-sort-numeric-ascending</v-icon>
+                        </v-btn>
+                    </template>
+                    <span v-if="descendingSort">Descending order</span>
+                    <span v-else>Ascending order</span>
+                </v-tooltip>
+                <v-select class="directory-select" v-model="sort"
+                          :items="sorts" item-text="title"
+                          item-value="key" outlined
                           rounded dense/>
             </div>
             <div class="right-buttons">
@@ -35,7 +73,7 @@
         <v-lazy>
             <div class="items">
                 <media-item :item="item" :type="dirKey === 'folder' ? 'folder' : null" :size="160"
-                            v-for="item in directory.Metadata" :key="item.guid" class="item"/>
+                            v-for="item in libraryItems" :key="item.guid" class="item"/>
             </div>
         </v-lazy>
     </div>
@@ -51,49 +89,128 @@ export default {
     components: {MediaItem, PlexImage},
     data: () => ({
         dirKey: 'all',
-        sort: [
-            {name: 'Title', property: 'title',},
-            {name: 'Year', property: 'year',},
-            {name: 'Release date', property: 'releaseDate',},
-            {name: 'Critic rating', property: 'title',},
-            {name: 'Date added', property: 'dateAdded',},
-            {name: 'Date viewed', property: 'dateViewed',},
-        ],
-        sortProp: 'title',
+        sort: '',
+        descendingSort: false,
+        filter: [],
+        sortLoading: false,
+        hasInitialized: false,
+        subFilters: {},
     }),
     async mounted() {
+        this.hasInitialized = false;
         await this.$store.restored;
         await this.init();
     },
     methods: {
         async init() {
+            this.filter = this.$route.query.filter?.split('~') ?? [];
+            this.sort = this.$route.query.sort ?? 'titleSort';
+            this.descendingSort = this.$route.query.dir === 'desc';
             this.dirKey = this.$route.params.directory ?? 'all';
+
+            this.hasInitialized = true;
             this.updateSectionLibrary(this.key).then();
-            this.updateLibraryDirectory({sectionKey: this.key, directory: this.dirKey}).then();
-            console.log(this.library);
-            console.log(this.directory);
+            this.updateDirectory().then();
+            this.updateSectionSorts(this.key).then();
+            this.updateSectionFilters(this.key).then();
+            console.log({
+                filters: this.filters,
+                sorts: this.sorts,
+                libraryItems: this.libraryItems,
+                directory: this.directory,
+            });
         },
-        ...mapActions(['updateSectionLibrary', 'updateLibraryDirectory']),
+        selectSubFilter(filter, subFilter) {
+            this.filter = [filter, subFilter.key];
+        },
+        getFilter(filter) {
+            return this.$store.state.plex.content['sectionFilter' + this.key + '|' + filter] ?? [];
+        },
+        showFilter(filter) {
+            this.updateSectionFilter({key: this.key, filter});
+        },
+        async toggleSortDirection() {
+            this.descendingSort = !this.descendingSort;
+        },
+        async updateDirectory() {
+            if (!this.hasInitialized)
+                return;
+            return await this.updateLibraryDirectory({
+                sectionKey: this.key,
+                directory: this.dirKey,
+                sort: this.sortQuery,
+                filter: this.filter,
+            })
+        },
+        async updateRoute() {
+            await this.$router.replace({
+                params: {
+                    directory: this.dirKey,
+                    key: this.key,
+                },
+                query: {
+                    filter: this.filter.join('~'),
+                    sort: this.sort,
+                    dir: this.descendingSort ? 'desc' : 'asc',
+                },
+            });
+        },
+        ...mapActions(['updateSectionLibrary', 'updateLibraryDirectory', 'updateSectionFilters', 'updateSectionSorts', 'updateSectionFilter']),
     },
     computed: {
+        filterName() {
+            let filter = this.filters.find(f => f.filter === this.filter[0]);
+            return filter?.title ?? this.filter[0];
+        },
+        subFilterName() {
+            let subFilters = this.getFilter(this.filter[0]);
+            let subFilter = subFilters.find(s => s.key === this.filter[1]);
+            return subFilter?.title ?? this.filter[1];
+        },
+        sortQuery() {
+            return this.sort + (this.descendingSort ? ':desc' : '');
+        },
+        filters() {
+            return this.$store.state.plex.content['sectionFilters' + this.key] ?? [];
+        },
+        sorts() {
+            return this.$store.state.plex.content['sectionSorts' + this.key] ?? [];
+        },
         key() {
             return this.$route.params.key ?? '1';
         },
-        library() {
-            return this.$store.state.plex.content['sectionLibrary' + this.key];
-        },
         directory() {
-            return this.$store.state.plex.content['sectionLibrary' + this.key + '|' + this.dirKey] ?? [];
+            return this.$store.state.plex.content['libraryChildren' + this.key] ?? [];
+        },
+        libraryItems() {
+            return this.$store.state.plex.content['sectionLibrary' + this.key + '|' + this.dirKey + '|' + this.sortQuery + JSON.stringify(this.filter)] ?? [];
         },
     },
     watch: {
         key() {
             this.init();
         },
+        descendingSort() {
+            if (this.$route.query.dir !== (this.descendingSort ? 'desc' : 'all'))
+                this.updateRoute();
+            this.updateDirectory();
+        },
+        sort() {
+            if (this.$route.query.sort !== this.sort)
+                this.updateRoute();
+            this.updateDirectory();
+        },
+        filter() {
+            if (this.$route.query.filter !== this.filter.join('~'))
+                this.updateRoute();
+            this.updateDirectory();
+        },
         dirKey() {
             if (this.$route.params.directory !== this.dirKey)
-                this.$router.replace({params: {directory: this.dirKey, key: this.key}})
-            this.updateLibraryDirectory({sectionKey: this.key, directory: this.dirKey});
+                this.updateRoute();
+            this.updateDirectory();
+        },
+        '$route'() {
         },
     },
 }
@@ -102,6 +219,16 @@ export default {
 <style scoped>
 .library {
 
+}
+
+.filter-list {
+    max-height: 400px;
+    width: 300px;
+    overflow-y: auto;
+}
+
+.sub-item {
+    font-size: 12px;
 }
 
 .top-buttons {
@@ -113,13 +240,13 @@ export default {
 }
 
 .directory-select {
-    width: 250px;
+    width: 200px;
     display: inline-flex;
 }
 
 .items {
+    padding: 0 35px;
     padding-bottom: 40px;
-    text-align: center;
 }
 
 .item {

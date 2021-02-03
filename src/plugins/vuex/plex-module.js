@@ -76,19 +76,20 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
-        async offlinePlexImg({}, url) {
-            const cacheStorage = await caches.open('plex-img');
-            let res = await cacheStorage.match(url);
-            if (!res)
-                return null;
-            return URL.createObjectURL(await res.blob())
+        async updateSectionFilter({state, dispatch, commit}, {key, filter}) {
+            let content = await dispatch('query', {url: `/library/sections/${key}/${filter}`});
+            commit('content', {key: 'sectionFilter' + key + '|' + filter, content: content.Directory});
+            return content.Directory;
         },
-        async onlinePlexImg({state, dispatch, commit, getters}, url) {
-            const cacheStorage = await caches.open('plex-img');
-            let fresh = await fetch(url);
-            await cacheStorage.put(url, fresh);
-            let res = await cacheStorage.match(url);
-            return URL.createObjectURL(await res.blob());
+        async updateSectionSorts({state, dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/library/sections/${key}/sorts`});
+            commit('content', {key: 'sectionSorts' + key, content: content.Directory});
+            return content.Directory;
+        },
+        async updateSectionFilters({state, dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/library/sections/${key}/filters`});
+            commit('content', {key: 'sectionFilters' + key, content: content.Directory});
+            return content.Directory;
         },
         async updateMetadata({state, dispatch, commit}, key) {
             let content = await dispatch('query', {url: `/library/metadata/${key}`});
@@ -105,15 +106,23 @@ export default {
             commit('content', {key: 'metadataChildren' + key, content: content.Metadata});
             return content.Metadata;
         },
-        async updateLibraryDirectory({state, dispatch, commit}, {sectionKey, directory}) {
-            let content = await dispatch('query', {url: `/library/sections/${sectionKey}/${directory}`});
-            commit('content', {key: 'sectionLibrary' + sectionKey + '|' + directory, content: content});
-            return content;
+        async updateLibraryDirectory({state, dispatch, commit}, {sectionKey, directory, sort, filter}) {
+            let content = await dispatch('query', {
+                url: `/library/sections/${sectionKey}/${directory}?` + qs.stringify({
+                    sort,
+                    [filter[0]]: filter[1],
+                }),
+            });
+            commit('content', {
+                key: 'sectionLibrary' + sectionKey + '|' + directory + '|' + sort + JSON.stringify(filter),
+                content: content.Metadata,
+            });
+            return content.Metadata;
         },
         async updateSectionLibrary({state, dispatch, commit}, sectionKey) {
             let content = await dispatch('query', {url: `/library/sections/${sectionKey}`});
-            commit('content', {key: 'sectionLibrary' + sectionKey, content: content});
-            return content;
+            commit('content', {key: 'libraryChildren' + sectionKey, content: content.Directory});
+            return content.Directory;
         },
         async updateRecentlyAdded({dispatch, commit}) {
             let content = await dispatch('query', {url: '/library/recentlyAdded'});
@@ -149,7 +158,8 @@ export default {
         },
         async query({state, getters, commit, dispatch}, {url, method = 'GET', lifetime = 3000}) {
             if (!getters.canQuery)
-                return console.warn("Can't query :(, todo, do something here (redirect to settings? tell user)");
+                return console.warn(`Can't query :(, server probably null`);
+            // console.log('query: ', url);
             try {
                 method = method.toUpperCase();
                 let key = 'query' + method + JSON.stringify(url);
@@ -168,6 +178,20 @@ export default {
                 console.warn(`Error in ${method} query to:`, url, {e});
                 return false;
             }
+        },
+        async offlinePlexImg({}, url) {
+            const cacheStorage = await caches.open('plex-img');
+            let res = await cacheStorage.match(url);
+            if (!res)
+                return null;
+            return URL.createObjectURL(await res.blob())
+        },
+        async onlinePlexImg({state, dispatch, commit, getters}, url) {
+            const cacheStorage = await caches.open('plex-img');
+            let fresh = await fetch(url);
+            await cacheStorage.put(url, fresh);
+            let res = await cacheStorage.match(url);
+            return URL.createObjectURL(await res.blob());
         },
         // -------------------------------------------------------------------- //
         // ------------------------- plex.tv API ------------------------------ //
