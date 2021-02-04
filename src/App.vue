@@ -34,10 +34,9 @@ import Utils from "@/js/Utils";
 // Implement /shows
 // Implement /movies
 // Implement /home
-// some components could be merged (show & movie)
-// Bring some ui features of /movie to /episode
-// implement /season
+// Implement search (with autocomplete)
 
+// some components could be merged (show & movie)
 // make item menu
 // make mark as watched functionality
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
@@ -50,7 +49,6 @@ import Utils from "@/js/Utils";
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
 // Resizable scale for views such as library and explore
-// Implement search (with autocomplete)
 // Fix close button
 // Implement video player (video for web, vlc-video for electron) (big work)
 // Implement controls while browsing with animation when switching
@@ -68,7 +66,9 @@ import Utils from "@/js/Utils";
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Bring some ui features of /movie to /episode
 // implement /movie & /episode
+// implement /season
 // Improve icon (more contrast?) idk
 // get sorts for a sections with /library/sections/key/sorts
 // get filters for a sections with /library/sections/key/filters
