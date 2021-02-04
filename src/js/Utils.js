@@ -1,6 +1,35 @@
 import {get, keys, set, clear} from "idb-keyval";
 
+const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+]
 export default class Utils {
+
+    static niceTime(date) {
+        let hrs = date.getHours() - 1;
+        if (hrs > 0)
+            return `${hrs}hr ${date.getMinutes()}min`
+        return `${date.getMinutes()}min`;
+    }
+
+    static niceDate(date) {
+        let day = date.getDate();
+        let month = months[date.getMonth()];
+        let year = date.getFullYear();
+        return `${day} ${month.substr(0, 3)}, ${year}`;
+    }
+
     static isTouchDevice() {
         return ('ontouchstart' in window) ||
             (navigator.maxTouchPoints > 0) ||

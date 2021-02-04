@@ -60,13 +60,8 @@ export default {
         },
         plexUrl: (state, getters) => url => getters.plexApi._generateRelativeUrl(url) +
             '&' + qs.stringify(({'X-Plex-Token': state.server.accessToken})),
-        transcodeUrl: (state, getters) => ({
-                                               url,
-                                               width,
-                                               height
-                                           }) => getters.plexUrl('/photo/:/transcode/?' + qs.stringify({
-            width, height, url,
-        })),
+        transcodeUrl: (state, getters) => ({url, width, height}) =>
+            getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url,})),
     },
     actions: {
         async updatePublicIp({commit}) {

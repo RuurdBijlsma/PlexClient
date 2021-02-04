@@ -1,22 +1,26 @@
 <template>
-    <div v-if="show" class="show">
+    <div v-if="season" class="show">
         <div class="left-column">
             <plex-image
                 glow
                 class="ml-6"
                 rounding="10px"
-                :src="show.thumb"
+                :src="season.thumb"
                 :width="200"
                 :height="300"/>
         </div>
         <div class="right-column">
-            <h2 class="show-title">{{show.parentTitle}}</h2>
-            <h3 class="show-title">{{show.title}}</h3>
-            <p class="show-value">{{ show.year }}</p>
-            <p class="show-summary">{{ show.summary }}</p>
-            <h3 class="sub-header mt-13">Seasons</h3>
+            <router-link no-style :to="`/show/${season.parentRatingKey}`" class="show-title">
+                <h2>{{ season.parentTitle }}</h2>
+            </router-link>
+            <router-link no-style :to="`/season/${season.ratingKey}`" class="show-value">
+                <p>{{ season.title }}</p>
+            </router-link>
+            <p class="show-value">{{ season.year }}</p>
+            <p class="show-summary">{{ season.summary }}</p>
+            <h3 class="sub-header mt-13">Episodes</h3>
             <div class="seasons">
-                <media-item class="season" v-for="season in seasons" :item="season"/>
+                <media-item class="season" v-for="season in episodes" :item="season" :size="250"/>
             </div>
         </div>
     </div>
@@ -36,13 +40,12 @@ export default {
         await this.$store.restored;
         console.log(5555, this.key);
         await this.init();
-        console.log(this.show);
+        console.log(this.season);
     },
     methods: {
         async init() {
             this.updateMetadata(this.key).then(e => console.log('meta', e));
             this.updateMetadataChildren(this.key).then(e => console.log('child', e));
-            this.updateMetadataRelated(this.key).then(e => console.log('related', e));
         },
         ...mapActions(['updateSectionLibrary', 'updateLibraryDirectory', 'updateMetadata', 'updateMetadataChildren', 'updateMetadataRelated']),
     },
@@ -50,14 +53,11 @@ export default {
         key() {
             return this.$route.params.key ?? '1';
         },
-        show() {
+        season() {
             return this.$store.state.plex.content['metadata' + this.key];
         },
-        seasons() {
+        episodes() {
             return this.$store.state.plex.content['metadataChildren' + this.key];
-        },
-        related() {
-            return this.$store.state.plex.content['metadataRelated' + this.key];
         },
     },
     watch: {
@@ -102,17 +102,11 @@ export default {
     max-width: 600px;
 }
 
-.show-detail {
-    margin: 3px 0;
-    opacity: 0.7;
-}
-
 .show-value {
     font-weight: bold;
 }
 
 .seasons {
-    /*text-align: center;*/
     margin-left: -15px;
 }
 

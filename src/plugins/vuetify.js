@@ -12,7 +12,7 @@ export default new Vuetify({
         dark,
         themes: {
             dark: {
-                primary: '#e58e13',
+                primary: '#d46817',
                 foreground: '#ffffff',
                 hardBackground: '#000000',
                 softForeground: '#d6d6d6',

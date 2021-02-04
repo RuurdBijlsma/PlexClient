@@ -3,13 +3,14 @@
         <div class="control-row">
             <h3>{{ title }}</h3>
             <div class="right-control" v-if="itemGroups.length > itemsPerPage">
-<!--                <span class="scroll-progress mr-2">-->
-<!--                    {{ (inView * rows) + 1 }} / {{ items.length }}-->
-<!--                </span>-->
-                <v-btn :disabled="!contentLeft || inView <= minIndex" icon class="mr-2" plain @click="scrollRow(-3)">
+                <span class="scroll-progress mr-2">
+                    {{ (inView * rows) + 1 }} / {{ items.length }}
+                </span>
+                <v-btn :disabled="!contentLeft" icon class="mr-2" plain @click="scrollRow(-1)"
+                       @dblclick="scrollRow(-5)">
                     <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
-                <v-btn :disabled="!contentRight || inView >= itemGroups.length - 1" icon plain @click="scrollRow(3)">
+                <v-btn :disabled="!contentRight" icon plain @click="scrollRow(1)" @dblclick="scrollRow(5)">
                     <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
             </div>
@@ -21,6 +22,7 @@ linear-gradient(to left, rgba(0, 0, 0, ${contentRight ? 0 : 1}) 0%, rgba(0, 0, 0
             <div class="column" v-for="itemGroup in itemGroups" ref="columns">
                 <media-item v-for="item in itemGroup"
                             :size="size"
+                            :section-key="sectionKey"
                             :type="type"
                             class="single-item"
                             :item="item"></media-item>
@@ -56,10 +58,13 @@ export default {
             type: String,
             default: null,
         },
+        sectionKey: {
+            type: Number,
+            default: 1,
+        },
     },
     data: () => ({
         scrollLeft: 0,
-        inView: 0,
         offsetWidth: 0,
     }),
     beforeDestroy() {
@@ -68,7 +73,6 @@ export default {
     },
     mounted() {
         this.resizeListener();
-        this.inView = this.minIndex;
         window.addEventListener('resize', this.resizeListener, false);
         this.scrollListener();
         this.$refs.container.addEventListener('scroll', this.scrollListener, false);
@@ -81,16 +85,17 @@ export default {
             this.scrollLeft = this.$refs.container?.scrollLeft ?? 0;
         },
         scrollRow(x) {
-            let columns = this.$refs.columns;
-            this.inView = Math.max(this.minIndex, Math.min(this.inView + x, columns.length - 1));
-            console.log(this.inView);
-            columns[this.inView].scrollIntoView({
-                inline: 'end',
-                behavior: "smooth",
+            this.$refs.container.scrollTo({
+                top: 0,
+                left: this.scrollLeft + (this.offsetWidth - this.size) * x,
+                behavior: 'smooth'
             });
         },
     },
     computed: {
+        inView() {
+            return Math.floor((this.scrollLeft + this.offsetWidth) / (this.size + 30));
+        },
         minIndex() {
             return Math.floor(this.itemsPerPage) - 1;
         },

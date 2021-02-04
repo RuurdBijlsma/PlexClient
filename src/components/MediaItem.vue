@@ -4,7 +4,7 @@
         '--imgHeight': imgHeight + 'px',
     }">
         <div class="image-container">
-            <plex-image v-if="item.thumb" class="img"
+            <plex-image class="img"
                         :rounding="itemRounding"
                         :width="imgWidth" :height="imgHeight"
                         :src="item.thumb"></plex-image>
@@ -17,7 +17,7 @@
                 </v-btn>
             </router-link>
         </div>
-        <div class="item-bottom" :style="{
+        <div class="item-bottom" v-if="!hideTitle" :style="{
             textAlign: itemType === 'actor' ? 'center' : 'left',
         }">
             <v-icon v-if="itemType === 'folder'" class="mr-2">mdi-folder</v-icon>
@@ -29,6 +29,8 @@
 
 <script>
 import PlexImage from "@/components/PlexImage";
+import ta from 'time-ago'
+import Utils from "@/js/Utils";
 
 export default {
     name: "MediaItem",
@@ -46,27 +48,54 @@ export default {
             type: String,
             default: null,
         },
+        sectionKey: {
+            type: Number,
+            default: 1,
+        },
+        hideTitle: {
+            type: Boolean,
+            default: false,
+        },
+        sortProp: {
+            type: String,
+            default: null,
+        },
     },
     computed: {
         itemTitle() {
             return {
-                'actor': this.item.tag,
+                actor: this.item.tag,
             }[this.itemType] ?? this.item.title;
         },
         itemSubtitles() {
+            let sortSubtitle = []
+            if (this.sortProp !== null && this.sortProp !== 'titleSort') {
+                let sortValue = this.item[this.sortProp];
+                sortSubtitle = sortValue === undefined ? [] : [{
+                    rating: `⭐ ${sortValue * 10}%`,
+                    audienceRating: `🌟 ${sortValue * 10}%`,
+                    originallyAvailableAt: Utils.niceDate(new Date(sortValue)),
+                    lastViewedAt: ta.ago(new Date(sortValue * 1000)),
+                    duration: Utils.niceTime(new Date(sortValue)),
+                    addedAt: ta.ago(new Date(sortValue * 1000)),
+                }[this.sortProp] ?? sortValue]
+            }
             return {
-                'show': [`${this.item.childCount} seasons`],
-                'movie': [this.item.year],
-                'season': [`${this.item.leafCount} episodes`],
-                'actor': [this.item.role?.replaceAll('|', ', ')],
+                show: [`${this.item.childCount} season${this.item.childCount === 1 ? '' : 's'}`, ...sortSubtitle],
+                movie: [this.item.year, ...sortSubtitle],
+                season: [`${this.item.leafCount} episode${this.item.leafCount === 1 ? '' : 's'}`],
+                actor: [this.item.role?.replaceAll('|', ', ')],
+                episode: [`Episode ${this.item.index}`]
             }[this.itemType] ?? [];
         },
         to() {
-            return `/${this.itemType}/${this.item.ratingKey}`;
+            return {
+                actor: `/library/${this.sectionKey}/all?filter=actor~${this.item.id}`,
+            }[this.itemType] ?? `/${this.itemType}/${this.item.ratingKey}`;
         },
         itemRounding() {
             return {
-                'actor': '50%',
+                actor: '50%',
             }[this.itemType] ?? '0.4vw';
         },
         itemType() {
@@ -86,10 +115,10 @@ export default {
         },
         aspectRatio() {
             return {
-                'show': 10 / 15,
-                'movie': 10 / 15,
-                'season': 10 / 15,
-                'actor': 1,
+                show: 10 / 15,
+                movie: 10 / 15,
+                season: 10 / 15,
+                actor: 1,
             }[this.itemType] ?? 16 / 9;
         },
     }
@@ -150,7 +179,7 @@ export default {
 .item-title {
     color: var(--foreground);
     text-decoration: none;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .item-title:hover {
@@ -159,7 +188,7 @@ export default {
 
 .item-grey-text {
     opacity: 0.7;
-    font-weight: 300;
+    font-weight: 400;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

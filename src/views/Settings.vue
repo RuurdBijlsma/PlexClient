@@ -69,6 +69,7 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from "vuex";
+import Utils from "@/js/Utils";
 
 export default {
     name: 'Settings',
@@ -105,7 +106,7 @@ export default {
             this.loginLoading = false;
         },
         toDateString(d) {
-            return new Date(d).toDateString();
+            return Utils.niceDate(new Date(d));
         },
         ...mapActions(['markPrimaryServer', 'ensureAuth', 'updateUserInfo', 'updateServices', 'resetPlexLogin', 'updateSections']),
     },

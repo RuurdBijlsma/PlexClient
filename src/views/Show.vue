@@ -1,39 +1,55 @@
 <template>
-    <div v-if="show" class="show">
-        <div class="left-column">
-            <plex-image
-                glow
-                class="ml-6"
-                rounding="10px"
-                :src="show.thumb"
-                :width="200"
-                :height="300"/>
-        </div>
-        <div class="right-column">
-            <h2 class="show-title">{{ show.title }}</h2>
-            <p class="show-value">{{ show.year }}</p>
-            <p class="show-summary">{{ show.summary }}</p>
-            <p class="show-detail">Studio:
-                <router-link class="show-value" to="/">{{ show.studio }}</router-link>
-            <p class="show-detail">Genres:
-                <router-link class="show-value" to="/" v-for="genre in show.Genre" :key="genre.id">{{
-                        genre.tag
-                    }}
-                </router-link>
-            </p>
-            <h3 class="sub-header mt-13">Seasons</h3>
-            <div class="seasons">
-                <media-item class="season" v-for="season in seasons" :item="season"/>
+    <v-lazy>
+        <div v-if="show" class="show">
+            <div class="left-column">
+                <plex-image
+                    glow
+                    class="ml-6"
+                    rounding="10px"
+                    :src="show.thumb"
+                    :width="200"
+                    :height="300"/>
             </div>
-            <item-row class="mt-13" title="Cast" :items="show.Role" type="actor"></item-row>
-            <item-row v-for="item in related" class="mt-13" :title="item.title" :items="item.Metadata"></item-row>
-            <!--<item-row class="mt-13" title="Related shows" :items="show.Similar"></item-row>-->
-            <h3 class="sub-header mt-13">Similar shows</h3>
-            <v-chip-group show-arrows>
-                <v-chip v-for="item in show.Similar" :key="item.id">{{ item.tag }}</v-chip>
-            </v-chip-group>
+            <div class="right-column">
+                <router-link no-style class="show-title" :to="`/show/${show.ratingKey}`">
+                    <h2>{{ show.title }}</h2>
+                </router-link>
+                <router-link no-style class="show-value"
+                             :to="`/library/${show.librarySectionID}/?filter=year~${show.year}`">
+                    <p>{{ show.year }}</p>
+                </router-link>
+                <p class="show-summary">{{ show.summary }}</p>
+                <p class="show-detail">Studio:
+                    <router-link no-style class="show-value"
+                                 :to="`/library/${show.librarySectionID}/?filter=studio~${show.studio}`">
+                        {{ show.studio }}
+                    </router-link>
+                <p class="show-detail">Genres:
+                    <span v-for="(genre, i) in show.Genre" :key="genre.id">
+                    <router-link no-style class="show-value"
+                                 :to="`/library/${show.librarySectionID}/?filter=genre~${genre.id}`">
+                        {{ genre.tag }}
+                    </router-link>
+                    <span v-if="i < show.Genre.length - 1">, </span>
+                </span>
+                </p>
+                <h3 class="sub-header mt-13">Seasons</h3>
+                <div class="seasons">
+                    <media-item class="season" v-for="season in seasons" :item="season"/>
+                </div>
+                <item-row :section-key="show.librarySectionID" class="mt-13" title="Cast" :items="show.Role"
+                          type="actor"/>
+                <item-row :section-key="show.librarySectionID" v-for="item in related" class="mt-13" :title="item.title"
+                          :items="item.Metadata"></item-row>
+                <!--<item-row class="mt-13" title="Related shows" :items="show.Similar"></item-row>-->
+                <h3 class="sub-header mt-13">Similar shows</h3>
+                <v-chip-group show-arrows>
+                    <v-chip v-for="item in show.Similar" :key="item.id">{{ item.tag }}</v-chip>
+                </v-chip-group>
+            </div>
         </div>
-    </div>
+
+    </v-lazy>
 </template>
 
 <script>
@@ -126,7 +142,6 @@ export default {
 }
 
 .seasons {
-    /*text-align: center;*/
     margin-left: -15px;
 }
 

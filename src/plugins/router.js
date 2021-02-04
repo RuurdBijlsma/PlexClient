@@ -16,6 +16,11 @@ const routes = [
         component: () => import('../views/Settings')
     },
     {
+        path: '/library/:key/:directory?',
+        name: 'Library',
+        component: () => import('../views/Library')
+    },
+    {
         path: '/show/:key',
         name: 'Show',
         component: () => import('../views/Show')
@@ -26,9 +31,14 @@ const routes = [
         component: () => import('../views/Season')
     },
     {
-        path: '/library/:key/:directory?',
-        name: 'Library',
-        component: () => import('../views/Library')
+        path: '/episode/:key',
+        name: 'Episode',
+        component: () => import('../views/Episode')
+    },
+    {
+        path: '/movie/:key',
+        name: 'Movie',
+        component: () => import('../views/Movie')
     },
 ]
 

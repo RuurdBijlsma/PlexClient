@@ -1,82 +1,82 @@
 <template>
-    <div class="library">
-        <div class="top-buttons">
-            <div class="left-buttons">
-                <v-menu offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn class="mr-3" icon v-bind="attrs" v-on="on">
-                            <v-icon>mdi-filter-outline</v-icon>
-                        </v-btn>
-                    </template>
-                    <v-list dense class="filter-list">
-                        <v-list-group sub-group v-for="filterObj in filters" @click="showFilter(filterObj.filter)">
-                            <template v-slot:activator>
-                                <v-list-item-title>{{ filterObj.title }}</v-list-item-title>
-                            </template>
-                            <v-list-item @click="selectSubFilter(filterObj.filter, subFilter)" class="sub-item"
-                                         v-for="subFilter in getFilter(filterObj.filter)">
-                                <v-list-item-icon>
-                                    <v-icon
-                                        v-if="filter.hasOwnProperty(filterObj.filter) && filter[filterObj.filter] === subFilter">
-                                        mdi-check
-                                    </v-icon>
-                                </v-list-item-icon>
-                                <v-list-item-title>
-                                    {{ subFilter.title }}
-                                </v-list-item-title>
-                            </v-list-item>
-                        </v-list-group>
-                    </v-list>
-                </v-menu>
-                <v-chip class="mr-3" v-if="filter.length === 2" close @click:close="filter = []">{{ filterName }}:
-                    {{ subFilterName }}
-                </v-chip>
-                <v-select class="directory-select mr-3" v-model="dirKey"
-                          :items="directory.filter(d => !d.secondary && !d.search)" item-text="title"
-                          item-value="key" outlined
-                          rounded dense/>
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn :loading="sortLoading" @click="toggleSortDirection" class="mr-3" icon v-bind="attrs"
-                               v-on="on">
-                            <v-icon v-if="descendingSort">mdi-sort-numeric-descending</v-icon>
-                            <v-icon v-else>mdi-sort-numeric-ascending</v-icon>
-                        </v-btn>
-                    </template>
-                    <span v-if="descendingSort">Descending order</span>
-                    <span v-else>Ascending order</span>
-                </v-tooltip>
-                <v-select class="directory-select" v-model="sort"
-                          :items="sorts" item-text="title"
-                          item-value="key" outlined
-                          rounded dense/>
+    <v-lazy>
+        <div class="library">
+            <div class="top-buttons">
+                <div class="left-buttons">
+                    <v-menu offset-y :close-on-content-click="false">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn class="mr-3" icon v-bind="attrs" v-on="on">
+                                <v-icon>mdi-filter-outline</v-icon>
+                            </v-btn>
+                        </template>
+                        <v-list dense class="filter-list">
+                            <v-list-group sub-group v-for="filterObj in filters" @click="showFilter(filterObj.filter)">
+                                <template v-slot:activator>
+                                    <v-list-item-title>{{ filterObj.title }}</v-list-item-title>
+                                </template>
+                                <v-list-item @click="selectSubFilter(filterObj.filter, subFilter)" class="sub-item"
+                                             v-for="subFilter in getFilter(filterObj.filter)">
+                                    <v-list-item-icon>
+                                        <v-icon
+                                            v-if="filter.hasOwnProperty(filterObj.filter) && filter[filterObj.filter] === subFilter">
+                                            mdi-check
+                                        </v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title>
+                                        {{ subFilter.title }}
+                                    </v-list-item-title>
+                                </v-list-item>
+                            </v-list-group>
+                        </v-list>
+                    </v-menu>
+                    <v-chip class="mr-3" v-if="filter.length === 2" close @click:close="filter = []">{{ filterName }}:
+                        {{ subFilterName }}
+                    </v-chip>
+                    <v-select class="directory-select mr-3" v-model="dirKey"
+                              :items="directory.filter(d => !d.secondary && !d.search)" item-text="title"
+                              item-value="key" outlined
+                              rounded dense/>
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn :loading="sortLoading" @click="toggleSortDirection" class="mr-3" icon v-bind="attrs"
+                                   v-on="on">
+                                <v-icon v-if="descendingSort">mdi-sort-numeric-descending</v-icon>
+                                <v-icon v-else>mdi-sort-numeric-ascending</v-icon>
+                            </v-btn>
+                        </template>
+                        <span v-if="descendingSort">Descending order</span>
+                        <span v-else>Ascending order</span>
+                    </v-tooltip>
+                    <v-select class="directory-select" v-model="sort"
+                              :items="sorts" item-text="title"
+                              item-value="key" outlined
+                              rounded dense/>
+                </div>
+                <div class="right-buttons">
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon v-bind="attrs" v-on="on" class="mr-2">
+                                <v-icon>mdi-play</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Play</span>
+                    </v-tooltip>
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn icon v-bind="attrs" v-on="on">
+                                <v-icon>mdi-shuffle</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Shuffle</span>
+                    </v-tooltip>
+                </div>
             </div>
-            <div class="right-buttons">
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn icon v-bind="attrs" v-on="on" class="mr-2">
-                            <v-icon>mdi-play</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Play</span>
-                </v-tooltip>
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn icon v-bind="attrs" v-on="on">
-                            <v-icon>mdi-shuffle</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Shuffle</span>
-                </v-tooltip>
-            </div>
-        </div>
-        <v-lazy>
             <div class="items">
-                <media-item :item="item" :type="dirKey === 'folder' ? 'folder' : null" :size="160"
+                <media-item :sort-prop="sort" :item="item" :type="dirKey === 'folder' ? 'folder' : null" :size="160"
                             v-for="item in libraryItems" :key="item.guid" class="item"/>
             </div>
-        </v-lazy>
-    </div>
+        </div>
+    </v-lazy>
 </template>
 
 <script>
@@ -109,8 +109,10 @@ export default {
             this.dirKey = this.$route.params.directory ?? 'all';
 
             this.hasInitialized = true;
+            console.log("Update", this.filter[0]);
+            this.updateSectionFilter({key: this.key, filter: this.filter[0]}).then();
             this.updateSectionLibrary(this.key).then();
-            this.updateDirectory().then();
+            this.updateDirectory().then(e => console.log('section library', e));
             this.updateSectionSorts(this.key).then();
             this.updateSectionFilters(this.key).then();
             console.log({
@@ -250,7 +252,7 @@ export default {
 }
 
 .item {
-    margin: 8px 15px;
+    margin: 8px 0 8px 30px;
     display: inline-flex;
 }
 </style>

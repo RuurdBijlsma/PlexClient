@@ -13,7 +13,7 @@
             <div class="background" :style="{
                 backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
                 transition: `background-image ${bgTransition}`,
-                maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.7 : 0.4}) 95%)`,
+                maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.7 : 0.6}) 95%)`,
             }"/>
             <div class="blur"/>
             <div class="gradient" :scrolled="scrollY > 50"/>
@@ -31,32 +31,30 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
-// /show and /season can be one component, structure is similar
-// implement /season
-// implement /movie & /episode
 // Implement /shows
 // Implement /movies
 // Implement /home
+// some components could be merged (show & movie)
+// Bring some ui features of /movie to /episode
+// implement /season
 
+// make item menu
+// make mark as watched functionality
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
-// scrollIntoView scrolls vertically 🤮
 // Add not found image to mediaItem (different per type)
 // Make MediaItem work with more item types
-// get sorts for a sections with /library/sections/key/sorts
-// get filters for a sections with /library/sections/key/filters
 
 // Find way around cors for offline images
 // Windows media controls integration
 // If show is in library of similar shows, show this visually and allow click on that show to go there
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
-// Resizable scale for views such as library and explore (make css var --scale and multiply sizes with that)
+// Resizable scale for views such as library and explore
 // Implement search (with autocomplete)
 // Fix close button
 // Implement video player (video for web, vlc-video for electron) (big work)
 // Implement controls while browsing with animation when switching
 // Theme color based on artwork of episode/show/movie page?
-// Improve icon (more contrast?) idk
 // Switch to bottom bar navigation for small screen
 // Implement server settings in settings (maybe steal settings layout from Plex)
 // Add sonarr domain input for similar shows linking
@@ -70,6 +68,12 @@ import Utils from "@/js/Utils";
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// implement /movie & /episode
+// Improve icon (more contrast?) idk
+// get sorts for a sections with /library/sections/key/sorts
+// get filters for a sections with /library/sections/key/filters
+// scrollIntoView scrolls vertically 🤮
+// fix when going to filtered library via url (not via menu) the filter names don't update (and therefore don't show on first load)
 // Implement /library/movies
 // Change :to in mediaitem to /show/9228 etc.
 // Implement /library/shows
@@ -162,6 +166,14 @@ html {
 /*.router-link-active:hover {*/
 /*    text-decoration: underline;*/
 /*}*/
+a[no-style] {
+    text-decoration: none;
+    color: var(--foreground) !important;
+}
+
+a[no-style]:hover {
+    text-decoration: underline;
+}
 
 .appbar {
     z-index: 11;
