@@ -16,9 +16,10 @@
             <router-link no-style :to="`/season/${season.ratingKey}`" class="show-value">
                 <p>{{ season.title }}</p>
             </router-link>
-            <p class="show-value">{{ season.year }}</p>
-            <p class="show-summary">{{ season.summary }}</p>
-            <h3 class="sub-header mt-13">Episodes</h3>
+            <v-divider/>
+            <data-details class="mt-2" :metadata="season"/>
+            <data-play class="mt-3" :metadata="season"/>
+            <h3 class="sub-header" :class="{'mt-13': season.summary}">Episodes</h3>
             <div class="seasons">
                 <media-item class="season" v-for="season in episodes" :item="season" :size="250"/>
             </div>
@@ -31,10 +32,12 @@ import {mapActions} from "vuex";
 import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
+import DataDetails from "@/components/DataDetails";
+import DataPlay from "@/components/DataPlay";
 
 export default {
     name: "Show",
-    components: {ItemRow, PlexImage, MediaItem},
+    components: {DataPlay, DataDetails, ItemRow, PlexImage, MediaItem},
     data: () => ({}),
     async mounted() {
         await this.$store.restored;
@@ -94,12 +97,6 @@ export default {
     font-weight: 400;
     opacity: 0.8;
     margin: 10px 0;
-}
-
-.show-summary {
-    font-size: 14px;
-    width: 100%;
-    max-width: 600px;
 }
 
 .show-value {

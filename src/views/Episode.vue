@@ -19,49 +19,9 @@
                     {{ episode.title }}
                 </router-link>
             </p>
-            <v-divider class="mt-2 mb-2"></v-divider>
-            <div class="show-value episode-sub-header mt-2">
-                <router-link no-style :to="`/library/${episode.librarySectionID}/?filter=year~${episode.year}`"
-                             class="ml-3">
-                    {{ episode.year }}
-                </router-link>
-                <span class="ml-8">{{ duration }}</span>
-                <v-chip :to="`/library/${episode.librarySectionID}/?filter=contentRating~${episode.contentRating}`"
-                        class="ml-8" small>{{ episode.contentRating }}
-                </v-chip>
-            </div>
-            <v-divider class="mt-2 mb-2"></v-divider>
-            <div class="episode-buttons mt-3">
-                <v-btn color="primary" small rounded elevation="0">
-                    <v-icon class="mr-2">mdi-play</v-icon>
-                    Play
-                </v-btn>
-                <div>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn class="ml-5"
-                                   plain
-                                   icon v-bind="attrs"
-                                   v-on="on">
-                                <v-icon>mdi-checkbox-marked-circle-outline</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Mark as watched</span>
-                    </v-tooltip>
-                    <v-btn class="ml-5 mr-2" icon plain>
-                        <v-icon>mdi-dots-vertical</v-icon>
-                    </v-btn>
-                </div>
-            </div>
-            <p class="show-detail mt-3">{{ availableAt }}</p>
-            <p class="show-summary">{{ episode.summary }}</p>
-            <p class="show-detail">Written by:
-                <span v-for="(writer, i) in episode.Writer" :key="writer.id">
-                        <router-link no-style :to="`/library/${episode.librarySectionID}/?filter=writer~${writer.id}`"
-                                     class="show-value">{{ writer.tag }}</router-link><span
-                    v-if="i < episode.Writer.length - 1">, </span>
-                    </span>
-            </p>
+            <data-header :metadata="episode"/>
+            <data-play class="mt-3" :metadata="episode"/>
+            <data-details :metadata="episode"/>
         </div>
     </div>
 </template>
@@ -72,10 +32,13 @@ import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
 import Utils from "@/js/Utils";
+import DataHeader from "@/components/DataHeader";
+import DataDetails from "@/components/DataDetails";
+import DataPlay from "@/components/DataPlay";
 
 export default {
     name: "Show",
-    components: {ItemRow, PlexImage, MediaItem},
+    components: {DataPlay, DataDetails, DataHeader, ItemRow, PlexImage, MediaItem},
     data: () => ({}),
     async mounted() {
         await this.$store.restored;
@@ -91,7 +54,7 @@ export default {
     },
     computed: {
         duration() {
-            Utils.niceTime( new Date(this.episode.Media[0]?.duration));
+            Utils.niceTime(new Date(this.episode.Media[0]?.duration));
         },
         availableAt() {
             return Utils.niceDate(new Date(this.episode.originallyAvailableAt));
@@ -133,21 +96,6 @@ export default {
     font-weight: 400;
 }
 
-.episode-sub-header {
-    display: flex;
-    align-items: center;
-}
-
-.show-summary {
-    font-size: 14px;
-    width: 100%;
-    max-width: 600px;
-}
-
-.show-detail {
-    font-size: 14px;
-}
-
 .show-parent {
     font-weight: bold;
 }
@@ -155,13 +103,5 @@ export default {
 .show-parent > p {
     margin-top: 0px;
     margin-bottom: 0px;
-}
-
-.episode-buttons {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 600px;
 }
 </style>
