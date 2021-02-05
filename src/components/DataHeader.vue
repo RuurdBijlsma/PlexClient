@@ -10,11 +10,11 @@
             <v-chip :to="`/library/${metadata.librarySectionID}/?filter=contentRating~${metadata.contentRating}`"
                     class="ml-8" small>{{ metadata.contentRating }}
             </v-chip>
-            <div class="movie-sub-header" v-if="metadata.rating">
+            <div class="movie-sub-header" v-if="metadata.rating && !hideRatings">
                 <span class="ml-8">{{ metadata.rating * 10 }}% </span>
                 <div class="tomato"></div>
             </div>
-            <div class="movie-sub-header" v-if="metadata.audienceRating">
+            <div class="movie-sub-header" v-if="metadata.audienceRating && !hideRatings">
                 <span class="ml-3">{{ metadata.audienceRating * 10 }}% </span>
                 <div class="popcorn"></div>
             </div>
@@ -28,13 +28,17 @@ import Utils from "@/js/Utils";
 
 export default {
     name: "DataHeader",
-    props:{
-        metadata:{
+    props: {
+        metadata: {
             type: Object,
-            default:null,
+            default: null,
+        },
+        hideRatings: {
+            type: Boolean,
+            default: false,
         },
     },
-    computed:{
+    computed: {
         duration() {
             return Utils.niceTime(new Date(this.metadata.duration));
         },

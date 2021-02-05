@@ -30,8 +30,10 @@ export default new Vuex.Store({
     state: {
         promiseCache: {},
         scrollY: window.scrollY,
+        windowWidth: window.innerWidth,
     },
     mutations: {
+        windowWidth: (state, windowWidth) => state.windowWidth=windowWidth,
         scrollY: (state, scrollY) => state.scrollY=scrollY,
         removePromiseCache: (state, key) => Vue.delete(state.promiseCache, key),
         setPromiseCache: (state, {key, date, promise}) => Vue.set(state.promiseCache, key, {promise, date}),

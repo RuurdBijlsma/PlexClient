@@ -1,13 +1,14 @@
 <template>
     <div v-if="item" class="media-item" :style="{
         '--width': width + 'px',
+        '--height': height + 'px',
         '--imgHeight': imgHeight + 'px',
     }">
         <div class="image-container">
             <plex-image class="img"
                         :rounding="itemRounding"
                         :width="imgWidth" :height="imgHeight"
-                        :src="item.thumb"></plex-image>
+                        :src="itemThumb"></plex-image>
             <router-link class="item-buttons" :to="to">
                 <v-btn class="item-play" fab small color="primary">
                     <v-icon>mdi-play</v-icon>
@@ -21,8 +22,33 @@
             textAlign: itemType === 'actor' ? 'center' : 'left',
         }">
             <v-icon v-if="itemType === 'folder'" class="mr-2">mdi-folder</v-icon>
-            <router-link class="item-title" :to="to" :title="itemTitle">{{ itemTitle }}</router-link>
-            <div class="item-grey-text" v-for="subtitle of itemSubtitles" :title="subtitle">{{ subtitle }}</div>
+            <div v-if="showContext && itemType === 'episode'">
+                <router-link class="item-title" :to="`/show/${item.grandparentRatingKey}`"
+                             :title="item.grandparentTitle"> {{ item.grandparentTitle }}
+                </router-link>
+                <router-link class="item-grey-text" :to="to" no-style :title="item.title">
+                    {{ item.title }}
+                </router-link>
+                <div class="item-grey-text">
+                    <router-link :to="`/season/${item.parentRatingKey}`" no-style :title="item.title">
+                        S{{ item.parentIndex }}
+                    </router-link>
+                    •
+                    <router-link :to="to" no-style :title="item.title">E{{ item.index }}</router-link>
+                </div>
+            </div>
+            <div v-else-if="showContext && itemType === 'season'">
+                <router-link class="item-title" :to="`/show/${item.parentRatingKey}`"
+                             :title="item.parentTitle"> {{ item.parentTitle }}
+                </router-link>
+                <router-link class="item-grey-text" :to="to" no-style :title="item.title">
+                    {{ item.title }}
+                </router-link>
+            </div>
+            <div v-else>
+                <router-link class="item-title" :to="to" :title="itemTitle">{{ itemTitle }}</router-link>
+                <div class="item-grey-text" v-for="subtitle of itemSubtitles" :title="subtitle">{{ subtitle }}</div>
+            </div>
         </div>
     </div>
 </template>
@@ -44,6 +70,10 @@ export default {
             type: Number,
             default: 130,
         },
+        measureVertical: {
+            type: Boolean,
+            default: false,
+        },
         type: {
             type: String,
             default: null,
@@ -60,6 +90,18 @@ export default {
             type: String,
             default: null,
         },
+        showContext: {
+            type: Boolean,
+            default: false,
+        },
+        verticalEpisode: {
+            type: Boolean,
+            default: false,
+        },
+        horizontalMovie: {
+            type: Boolean,
+            default: false,
+        },
     },
     computed: {
         itemTitle() {
@@ -68,25 +110,29 @@ export default {
             }[this.itemType] ?? this.item.title;
         },
         itemSubtitles() {
-            let sortSubtitle = []
+            let subtitles = []
+
+            subtitles.push(({
+                show: `${this.item.childCount} season${this.item.childCount === 1 ? '' : 's'}`,
+                movie: this.item.year,
+                season: `${this.item.leafCount} episode${this.item.leafCount === 1 ? '' : 's'}`,
+                actor: this.item.role?.replaceAll('|', ', '),
+                episode: `Episode ${this.item.index}`,
+            }[this.itemType] ?? []));
+
             if (this.sortProp !== null && this.sortProp !== 'titleSort') {
                 let sortValue = this.item[this.sortProp];
-                sortSubtitle = sortValue === undefined ? [] : [{
-                    rating: `⭐ ${sortValue * 10}%`,
-                    audienceRating: `🌟 ${sortValue * 10}%`,
-                    originallyAvailableAt: Utils.niceDate(new Date(sortValue)),
-                    lastViewedAt: ta.ago(new Date(sortValue * 1000)),
-                    duration: Utils.niceTime(new Date(sortValue)),
-                    addedAt: ta.ago(new Date(sortValue * 1000)),
-                }[this.sortProp] ?? sortValue]
+                subtitles = sortValue === undefined ? [] : [{
+                    rating: v => `⭐ ${v * 10}%`,
+                    audienceRating: v => `🌟 ${v * 10}%`,
+                    originallyAvailableAt: v => Utils.niceDate(new Date(v)),
+                    lastViewedAt: v => ta.ago(new Date(v * 1000)),
+                    duration: v => Utils.niceTime(new Date(v)),
+                    addedAt: v => ta.ago(new Date(v * 1000)),
+                }[this.sortProp]?.(sortValue) ?? sortValue]
             }
-            return {
-                show: [`${this.item.childCount} season${this.item.childCount === 1 ? '' : 's'}`, ...sortSubtitle],
-                movie: [this.item.year, ...sortSubtitle],
-                season: [`${this.item.leafCount} episode${this.item.leafCount === 1 ? '' : 's'}`],
-                actor: [this.item.role?.replaceAll('|', ', ')],
-                episode: [`Episode ${this.item.index}`]
-            }[this.itemType] ?? [];
+
+            return [...subtitles];
         },
         to() {
             return {
@@ -98,22 +144,35 @@ export default {
                 actor: '50%',
             }[this.itemType] ?? '0.4vw';
         },
+        itemThumb() {
+            if (this.verticalEpisode && this.itemType === 'episode') {
+                return this.item.grandparentThumb;
+            } else if (this.horizontalMovie && this.itemType === 'movie') {
+                return this.item.art;
+            } else {
+                return this.item.thumb;
+            }
+        },
         itemType() {
             return this.type ?? this.item.type ?? 'show';
         },
         imgWidth() {
-            return this.size;
+            return this.measureVertical ? this.size * this.aspectRatio : this.size;
         },
         imgHeight() {
-            return this.size / this.aspectRatio;
+            return this.measureVertical ? this.size : this.size / this.aspectRatio;
         },
         width() {
-            return this.size;
+            return this.imgWidth;
         },
         height() {
-            return this.imgHeight + 60;
+            return this.imgHeight + (this.showContext ? 72 : 51);
         },
         aspectRatio() {
+            if (this.verticalEpisode && this.itemType === 'episode')
+                return 10 / 15;
+            if (this.horizontalMovie && this.itemType === 'movie')
+                return 16 / 9;
             return {
                 show: 10 / 15,
                 movie: 10 / 15,
@@ -127,6 +186,7 @@ export default {
 
 <style scoped>
 .media-item {
+    height: var(--height);
     display: inline-flex;
     position: relative;
     flex-direction: column;
@@ -180,6 +240,12 @@ export default {
     color: var(--foreground);
     text-decoration: none;
     font-weight: 500;
+    display: block;
+
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .item-title:hover {
@@ -187,8 +253,10 @@ export default {
 }
 
 .item-grey-text {
+    display: block;
     opacity: 0.7;
     font-weight: 400;
+
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

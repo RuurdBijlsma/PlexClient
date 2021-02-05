@@ -85,7 +85,6 @@ export default {
                         <html lang="en">
                             <head><title>Logged in to Plex :)</title></head>
                             <body>
-                                <h1>You can close this window</h1>
                                 <script>
                                     window.close();
                                 </script>

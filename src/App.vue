@@ -31,6 +31,9 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
+// continue watching show progress on home screen media item
+// arrow right button isn't correct
+// scale /home mainDeck thing based on window size
 // Implement /shows
 // Implement /movies
 // Implement /home
@@ -90,16 +93,17 @@ export default {
             dark: '',
             light: '',
         },
-        scrollInterval: -1,
+        resizeInterval: -1,
     }),
     beforeDestroy() {
         document.removeEventListener('keypress', this.devListener);
         window.removeEventListener('scroll', this.updateScroll);
-        clearInterval(this.scrollInterval);
+        clearInterval(this.resizeInterval);
     },
     async mounted() {
         console.log('store', this.$store);
         console.log('route', this.$route);
+        this.resizeInterval = setInterval(() => this.updateResize(), 1000 / 10);
 
         this.handleCode();
         this.updatePublicIp().then();
@@ -107,7 +111,12 @@ export default {
         document.addEventListener('keypress', this.devListener);
         window.addEventListener('scroll', this.updateScroll, false);
         setTimeout(() => this.bgTransition = '.6s', 500);
-        Utils.getCachedBackgrounds().then(bg => this.bgImg = bg);
+        Utils.getCachedBackgrounds().then(bg => {
+            this.bgImg = bg !== null ? bg : {
+                dark: 'img/darkbg.png',
+                light: 'img/lightbg.png',
+            };
+        });
 
         this.$store.restored.then(() => {
             if (this.$route.path !== '/settings' && this.server === null)
@@ -117,6 +126,9 @@ export default {
         });
     },
     methods: {
+        updateResize() {
+            this.$store.commit('windowWidth', window.innerWidth);
+        },
         handleCode() {
             if (location.search.includes('?plex_auth=')) {
                 let otherTab = new BroadcastChannel('loginCode');
@@ -142,6 +154,7 @@ export default {
             platform: state => state.platform.type,
             server: state => state.plex.server,
             scrollY: state => state.scrollY,
+            windowWidth: state => state.windowWidth,
         }),
     },
     watch: {

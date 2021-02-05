@@ -57,29 +57,30 @@ export default class Utils {
 
     static async getCachedBackgrounds() {
         let bgsInCache = await get('bgsInCache') ?? 0;
-        let useNew = bgsInCache === 0 ? true : Math.random() < 0.1;
-        if (useNew) {
-            try {
-                console.log("Getting new background");
-                let dark = [], light = [];
-                while (dark.length === 0 || light.length === 0) {
-                    let site = Math.random() > 0.5 ? 'picsum' : 'unsplash';
-                    let result = await Utils.getBackground(480, 360, site);
-                    if (result.dark)
-                        dark.push(result);
-                    else
-                        light.push(result);
-                }
-                let bgs = {dark: dark[0].url, light: light[0].url};
-                await set('background' + bgsInCache, bgs);
-                await set('bgsInCache', bgsInCache + 1);
-                return bgs;
-            } catch (e) {
-                console.warn('get bg error', e);
-            }
+        Utils.cacheBackground(bgsInCache).then();
+        if (bgsInCache === 0) {
+            return null;
         }
-        console.log("Getting cached background");
-        return await get('background' + Math.floor(Math.random() * bgsInCache));
+        return await get('background' + (bgsInCache - 1));
+    }
+
+    static async cacheBackground(bgsInCache) {
+        try {
+            let dark = [], light = [];
+            while (dark.length === 0 || light.length === 0) {
+                let site = Math.random() > 0.5 ? 'picsum' : 'unsplash';
+                let result = await Utils.getBackground(480, 360, site);
+                if (result.dark)
+                    dark.push(result);
+                else
+                    light.push(result);
+            }
+            let bgs = {dark: dark[0].url, light: light[0].url};
+            await set('background' + bgsInCache, bgs);
+            await set('bgsInCache', bgsInCache + 1);
+        } catch (e) {
+            console.warn('cache bg error', e);
+        }
     }
 
 
@@ -121,7 +122,6 @@ export default class Utils {
         }
         context.putImageData(imgData, 0, 0);
 
-        console.log(avgLuminance);
         return {url: canvas.toDataURL(), dark}
     }
 

@@ -16,16 +16,22 @@
             </div>
         </div>
         <div class="item-container" ref="container" :style="{
-            maskImage: `linear-gradient(to right, rgba(0, 0, 0, ${contentLeft ? 0 : 1}) 0%, rgba(0, 0, 0, 1) 15%),
-linear-gradient(to left, rgba(0, 0, 0, ${contentRight ? 0 : 1}) 0%, rgba(0, 0, 0, 1) 15%)`,
+            maskImage: `linear-gradient(to right, rgba(0, 0, 0, ${contentLeft ? 0 : 1}) 0%, rgba(0, 0, 0, 1) 5%),
+linear-gradient(to left, rgba(0, 0, 0, ${contentRight ? 0 : 1}) 0%, rgba(0, 0, 0, 1) 5%)`,
         }">
             <div class="column" v-for="itemGroup in itemGroups" ref="columns">
                 <media-item v-for="item in itemGroup"
+                            :key="item.ratingKey"
+                            :measure-vertical="measureVertical"
                             :size="size"
                             :section-key="sectionKey"
                             :type="type"
+                            :sort-prop="sortProp"
+                            :vertical-episode="verticalEpisode"
+                            :horizontal-movie="horizontalMovie"
                             class="single-item"
-                            :item="item"></media-item>
+                            :show-context="showContext"
+                            :item="item"/>
             </div>
         </div>
     </div>
@@ -62,23 +68,48 @@ export default {
             type: Number,
             default: 1,
         },
+        measureVertical: {
+            type: Boolean,
+            default: false,
+        },
+        sortProp: {
+            type: String,
+            default: null,
+        },
+        showContext: {
+            type: Boolean,
+            default: false,
+        },
+        verticalEpisode: {
+            type: Boolean,
+            default: false,
+        },
+        horizontalMovie: {
+            type: Boolean,
+            default: false,
+        },
     },
     data: () => ({
+        scrollWidth: 0,
         scrollLeft: 0,
         offsetWidth: 0,
+        resizeInterval: -1,
     }),
     beforeDestroy() {
         this.$refs.container.removeEventListener('scroll', this.scrollListener);
         window.removeEventListener('resize', this.resizeListener);
+        clearInterval(this.resizeInterval);
     },
     mounted() {
-        this.resizeListener();
         window.addEventListener('resize', this.resizeListener, false);
-        this.scrollListener();
         this.$refs.container.addEventListener('scroll', this.scrollListener, false);
+        this.$nextTick(() => this.resizeListener());
+        this.resizeListener();
+        this.scrollListener();
     },
     methods: {
         resizeListener() {
+            this.scrollWidth = this.$refs.container?.scrollWidth ?? 0;
             this.offsetWidth = this.$refs.container?.offsetWidth ?? 0;
         },
         scrollListener() {
@@ -106,7 +137,7 @@ export default {
             return this.scrollLeft > 0;
         },
         contentRight() {
-            return (this.$refs.container?.scrollWidth ?? 0) - (this.scrollLeft + this.offsetWidth);
+            return this.scrollWidth - (this.scrollLeft + this.offsetWidth);
         },
         itemGroups() {
             let groups = [];

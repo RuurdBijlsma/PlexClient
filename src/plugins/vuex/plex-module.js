@@ -35,7 +35,7 @@ export default {
         auth: (state, auth) => state.auth = auth,
     },
     getters: {
-        getServerPort: () => server => server?.connections.slice()
+        getServerPort: () => server => server?.connections?.slice()
             ?.sort((a, b) => a?.relay - b?.relay)
             ?.sort((a, b) => b?.local - a?.local)?.[0]?.port,
         port: (state, getters) => getters.getServerPort(state.server),
@@ -51,7 +51,7 @@ export default {
             new Date(getters.tvAuth.expiresAt) > new Date(),
         plexApi: (state, getters) => {
             let api = new PlexAPI({
-                hostname: state.server.publicAddress,
+                hostname: state.server?.publicAddress,
                 port: getters.port,
                 token: getters.token,
             });
@@ -59,7 +59,7 @@ export default {
             return api;
         },
         plexUrl: (state, getters) => url => getters.plexApi._generateRelativeUrl(url) +
-            '&' + qs.stringify(({'X-Plex-Token': state.server.accessToken})),
+            '&' + qs.stringify(({'X-Plex-Token': state.server?.accessToken})),
         transcodeUrl: (state, getters) => ({url, width, height}) =>
             getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url,})),
     },
@@ -71,6 +71,11 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
+        async updateContinueWatching({dispatch, commit}) {
+            let content = await dispatch('query', {url: `/hubs?identifier=home.continue&excludeFields=summary`});
+            commit('content', {key: 'continueWatching', content: content.Hub[0]});
+            return content.Hub[0];
+        },
         async updateSectionFilter({state, dispatch, commit}, {key, filter}) {
             let content = await dispatch('query', {url: `/library/sections/${key}/${filter}`});
             commit('content', {key: 'sectionFilter' + key + '|' + filter, content: content.Directory});
