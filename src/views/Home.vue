@@ -1,15 +1,17 @@
 <template>
-    <div class="home" v-if="onDeck">
-        <div class="on-deck">
-            <data-card class="main-card" :img-width="imgWidth" :metadata="mainDeck"></data-card>
-            <item-row title="On deck" class="sub-deck mt-10" vertical-episode show-context :size="150"
-                      :items="subDeck"/>
+    <v-lazy>
+        <div class="home" v-if="onDeck">
+            <div class="on-deck">
+                <data-card class="main-card" :img-width="imgWidth" :metadata="mainDeck"></data-card>
+                <item-row title="On deck" class="sub-deck mt-10" vertical-episode show-context :size="150"
+                          :items="subDeck"/>
+            </div>
             <item-row show-context horizontal-movie :size="250" class="mt-10" :title="continueWatching.title"
                       :items="continueWatching.Metadata"/>
             <item-row show-context :size="150" class="mt-10" title="Recently Added"
                       :items="recentlyAdded"/>
         </div>
-    </div>
+    </v-lazy>
 </template>
 
 <script>
@@ -33,7 +35,7 @@ export default {
         });
     },
     methods: {
-        ...mapActions(['updateOnDeck', 'updateContinueWatching','updateRecentlyAdded']),
+        ...mapActions(['updateOnDeck', 'updateContinueWatching', 'updateRecentlyAdded']),
     },
     computed: {
         recentlyAdded() {
@@ -52,7 +54,7 @@ export default {
             return this.onDeck?.[0];
         },
         subDeck() {
-            return this.onDeck.slice(1);
+            return this.onDeck?.slice(1);
         },
         ...mapState({
             windowWidth: state => state.windowWidth,

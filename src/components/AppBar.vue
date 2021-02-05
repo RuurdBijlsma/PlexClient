@@ -8,7 +8,7 @@
             <div class="links" v-if="canQuery">
                 <router-link class="no-drag" color="foreground" to="/" exact>Home</router-link>
                 <router-link class="no-drag" color="foreground"
-                             :to="`/section/${section.key}`" exact
+                             :to="`/explore/${section.key}`" exact
                              v-for="section in sections">
                     {{ section.title }}
                 </router-link>

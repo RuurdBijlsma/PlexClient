@@ -9,7 +9,9 @@
                         :rounding="itemRounding"
                         :width="imgWidth" :height="imgHeight"
                         :src="itemThumb"></plex-image>
-            <router-link class="item-buttons" :to="to">
+            <router-link class="item-buttons" :to="to" :style="{
+                borderRadius: itemRounding,
+            }">
                 <v-btn class="item-play" fab small color="primary">
                     <v-icon>mdi-play</v-icon>
                 </v-btn>
@@ -17,6 +19,17 @@
                     <v-icon>mdi-dots-vertical</v-icon>
                 </v-btn>
             </router-link>
+            <div class="img-overlay">
+                <v-progress-linear class="view-progress"
+                                   :style="{
+                                       height: itemRounding,
+                                       borderBottomLeftRadius: itemRounding,
+                                       borderBottomRightRadius: itemRounding,
+                                       top: `calc(100% - ${itemRounding})`,
+                                   }"
+                                   v-if="item.viewOffset && item.duration"
+                                   :value="item.viewOffset / item.duration * 100"/>
+            </div>
         </div>
         <div class="item-bottom" v-if="!hideTitle" :style="{
             textAlign: itemType === 'actor' ? 'center' : 'left',
@@ -205,19 +218,36 @@ export default {
     box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.2);
 }
 
-.item-buttons {
-    opacity: 0;
+.img-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.view-progress {
+    bottom: 0;
+    left: 0;
+}
+
+.item-buttons {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    backdrop-filter: saturate(120%) contrast(110%);
+    background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 50%);
+    opacity: 0;
+
     padding: calc(var(--width) / 10);
     display: flex;
     justify-content: space-between;
-    width: 100%;
-    height: 100%;
     align-items: flex-end;
-    /*background-color: rgba(0, 0, 0, 0.4);*/
-    transition: opacity 0.15s;
+    transition: opacity 0.2s;
     cursor: pointer;
     text-decoration: none;
 }

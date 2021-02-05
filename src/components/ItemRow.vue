@@ -1,7 +1,10 @@
 <template>
     <div class="item-row">
         <div class="control-row">
-            <h3>{{ title }}</h3>
+            <router-link no-style v-if="to" :to="to">
+                <h3 class="control-title">{{ title }}</h3>
+            </router-link>
+            <h3 class="control-title" v-else>{{title}}</h3>
             <div class="right-control" v-if="itemGroups.length > itemsPerPage">
                 <span class="scroll-progress mr-2">
                     {{ (inView * rows) + 1 }} / {{ items.length }}
@@ -63,6 +66,10 @@ export default {
         type: {
             type: String,
             default: null,
+        },
+        to: {
+            type: String,
+            default: '',
         },
         sectionKey: {
             type: Number,
@@ -179,7 +186,7 @@ export default {
     justify-content: space-between;
 }
 
-.control-row > h3 {
+.control-title {
     opacity: 0.8;
     font-weight: 400;
 }

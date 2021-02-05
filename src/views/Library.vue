@@ -105,7 +105,12 @@ export default {
         async init() {
             this.filter = this.$route.query.filter?.split('~') ?? [];
             this.sort = this.$route.query.sort ?? 'titleSort';
-            this.descendingSort = this.$route.query.dir === 'desc';
+            if (this.sort.includes(':desc')) {
+                this.descendingSort = true;
+                this.sort = this.sort.substr(0, this.sort.length - 5);
+            } else {
+                this.descendingSort = this.$route.query.dir === 'desc';
+            }
             this.dirKey = this.$route.params.directory ?? 'all';
 
             this.hasInitialized = true;

@@ -71,6 +71,21 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
+        async updateHub({dispatch, commit}, key) {
+            let query = qs.stringify({
+                count: 17,
+                includeEmpty: 1,
+                includeFeaturedTags: 1,
+                includeTypeFirst: 1,
+                includeStations: 1,
+                includeExternalMetadata: 1,
+                includeRecentChannels: 1,
+                excludePlaylists: 1,
+            });
+            let content = await dispatch('query', {url: `/hubs/sections/${key}?${query}`});
+            commit('content', {key: 'hub' + key, content: content.Hub});
+            return content.Hub;
+        },
         async updateContinueWatching({dispatch, commit}) {
             let content = await dispatch('query', {url: `/hubs?identifier=home.continue&excludeFields=summary`});
             commit('content', {key: 'continueWatching', content: content.Hub[0]});

@@ -40,6 +40,11 @@ const routes = [
         name: 'Movie',
         component: () => import('../views/Movie')
     },
+    {
+        path: '/explore/:key',
+        name: 'Explore',
+        component: () => import('../views/Explore')
+    },
 ]
 
 const router = new VueRouter({
