@@ -5,7 +5,6 @@ import Vue from 'vue';
 
 export default {
     state: {
-        sortLibrary: {},
         content: {
             library: null,
             sections: null,
@@ -27,6 +26,12 @@ export default {
         auth: null,
     },
     mutations: {
+        resetContent: state => state.content = {
+            library: null,
+            sections: null,
+            onDeck: null,
+            recentlyAdded: null,
+        },
         content: (state, {key, content}) => Vue.set(state.content, key, content),
         publicIp: (state, publicIp) => state.publicIp = publicIp,
         services: (state, services) => state.services = services,
@@ -71,6 +76,15 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
+        async searchPlex({dispatch, commit}, {query, sectionId}) {
+            const urlQuery = qs.stringify({
+                includeCollections: 1,
+                contextual: 1,
+                sectionId,
+                query,
+            });
+            return (await dispatch('query', {url: `/hubs/search?${urlQuery}`})).Hub;
+        },
         async updateHub({dispatch, commit}, key) {
             let query = qs.stringify({
                 count: 17,
@@ -252,6 +266,21 @@ export default {
                     ...extraHeaders,
                 }
             }).then(d => d.json());
+        },
+        async logout({commit}) {
+            commit('user', {
+                email: '',
+                profile: null,
+                services: null,
+                image: '',
+                title: '',
+                username: '',
+                uuid: '',
+            });
+            commit('server', null);
+            commit('auth', null)
+            commit('services', []);
+            commit('resetContent');
         },
         async login({dispatch}) {
             let info = {

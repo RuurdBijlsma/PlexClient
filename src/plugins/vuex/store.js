@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import theme from './theme-module'
 import plex from './plex-module'
+import search from './search-module'
 import VuexPersistence from 'vuex-persist'
 import localForage from 'localforage'
 
@@ -49,6 +50,6 @@ export default new Vuex.Store({
             return await promise;
         },
     },
-    modules: {platform, theme, plex},
+    modules: {platform, theme, plex,search},
     plugins: [vuexLocal.plugin],
 })

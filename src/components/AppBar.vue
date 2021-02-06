@@ -3,8 +3,9 @@
                app elevation="0" color="transparent"
                class="app-bar">
         <div class="app-bar-content">
-            <router-link to="/" :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
-                 class="text-logo"/>
+            <router-link to="/"
+                         :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
+                         class="text-logo"/>
             <div class="links" v-if="canQuery">
                 <router-link class="no-drag" color="foreground" to="/" exact>Home</router-link>
                 <router-link class="no-drag" color="foreground"
@@ -35,10 +36,7 @@
                 </v-menu>
             </div>
             <div class="header-right">
-                <v-text-field rounded filled dense hide-details="auto"
-                              class="mr-2 no-drag"
-                              prepend-icon="mdi-magnify"
-                              placeholder="Search"/>
+                <search-field class="no-drag mr-2"/>
                 <v-menu offset-y :close-on-content-click="true">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn
@@ -51,20 +49,17 @@
                         </v-btn>
                     </template>
                     <v-list dense>
-                        <!--                    <v-list-item two-line-->
-                        <!--                                 v-if="$store.getters.isLoggedIn">-->
-                        <!--                        <router-link class="list-link"-->
-                        <!--                                     tag="div"-->
-                        <!--                                     :to="`/user/${$store.getters.urlName($store.state.userInfo.name)}/${$store.state.userInfo.id}`">-->
-                        <!--                            <v-list-item-avatar>-->
-                        <!--                                <img :src="$store.state.userInfo.avatar" alt="User Avatar">-->
-                        <!--                            </v-list-item-avatar>-->
-                        <!--                            <v-list-item-content>-->
-                        <!--                                <v-list-item-title>{{ $store.state.userInfo.name }}</v-list-item-title>-->
-                        <!--                                <v-list-item-subtitle>{{ $store.state.userInfo.mail }}</v-list-item-subtitle>-->
-                        <!--                            </v-list-item-content>-->
-                        <!--                        </router-link>-->
-                        <!--                    </v-list-item>-->
+                        <v-list-item two-line v-if="$store.state.plex.user !== null">
+                            <v-list-item-avatar>
+                                <v-img :src="$store.state.plex.user.image"/>
+                            </v-list-item-avatar>
+                            <v-list-item-content>
+                                <v-list-item-title>{{ $store.state.plex.user.username }}</v-list-item-title>
+                                <v-list-item-title>
+                                    <v-btn class="logout-button" @click="logout" small plain>Log out</v-btn>
+                                </v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
 
                         <v-list-item to="/settings">
                             <v-list-item-icon>
@@ -105,11 +100,18 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from "vuex";
+import PlexImage from "@/components/PlexImage";
+import SearchField from "@/components/SearchField";
 
 export default {
     name: "AppBar",
+    components: {SearchField, PlexImage},
     methods: {
-        ...mapActions(['closeWindow', 'minimizeWindow']),
+        async logoutAndRedirect() {
+            await this.logout();
+            await this.$router.push('/settings');
+        },
+        ...mapActions(['closeWindow', 'minimizeWindow', 'logout']),
     },
     computed: {
         ...mapGetters(['canQuery']),
@@ -176,7 +178,7 @@ export default {
     display: flex;
 }
 
-.header-right button {
+.center-list-item button {
     margin-left: 0.5em;
 }
 

@@ -43,7 +43,7 @@
                     {{ item.title }}
                 </router-link>
                 <div class="item-grey-text">
-                    <router-link :to="`/season/${item.parentRatingKey}`" no-style :title="item.title">
+                    <router-link :to="`/season/${item.parentRatingKey}`" no-style :title="item.parentTitle">
                         S{{ item.parentIndex }}
                     </router-link>
                     •

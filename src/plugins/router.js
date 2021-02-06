@@ -16,7 +16,7 @@ const routes = [
         component: () => import('../views/Settings')
     },
     {
-        path: '/library/:key/:directory?',
+        path: '/library/:sectionKey/:directory?',
         name: 'Library',
         component: () => import('../views/Library')
     },
@@ -41,7 +41,7 @@ const routes = [
         component: () => import('../views/Movie')
     },
     {
-        path: '/explore/:key',
+        path: '/explore/:sectionKey',
         name: 'Explore',
         component: () => import('../views/Explore')
     },

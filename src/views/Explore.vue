@@ -3,8 +3,8 @@
         <v-lazy>
             <div class="on-deck" v-if="onDeck">
                 <data-card class="main-card mb-10" :img-width="imgWidth" :metadata="mainDeck"></data-card>
-                <item-row title="On deck" class="sub-deck" horizontal-movie show-context :size="250"
-                          :to="`/library/${key}/onDeck`"
+                <item-row title="On deck" class="sub-deck" horizontal-movie show-context :size="300"
+                          :to="`/library/${sectionKey}/onDeck`"
                           :items="subDeck"/>
             </div>
         </v-lazy>
@@ -33,7 +33,7 @@ export default {
     },
     methods: {
         async init() {
-            this.updateHub(this.key).then();
+            this.updateHub(this.sectionKey).then();
 
             console.log({
                 hub: this.hub,
@@ -59,10 +59,10 @@ export default {
             return this.hub.filter(s => s?.Metadata?.length > 0 && !s.context.includes('ondeck'));
         },
         hub() {
-            return this.$store.state.plex.content['hub' + this.key] ?? [];
+            return this.$store.state.plex.content['hub' + this.sectionKey] ?? [];
         },
-        key() {
-            return this.$route.params.key ?? '1';
+        sectionKey() {
+            return this.$route.params.sectionKey ?? '1';
         },
         ...mapState({
             windowWidth: state => state.windowWidth,

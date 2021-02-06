@@ -25,7 +25,7 @@
                         <v-list-item-subtitle>{{ user.email }}</v-list-item-subtitle>
                     </v-list-item-content>
                     <v-list-item-action>
-                        <v-btn @click="logout" text>Log out</v-btn>
+                        <v-btn @click="logoutAndRedirect" text>Log out</v-btn>
                     </v-list-item-action>
                 </v-list-item>
             </div>
@@ -77,19 +77,9 @@ export default {
         loginLoading: false,
     }),
     methods: {
-        logout() {
-            this.$store.commit('user', {
-                email: '',
-                profile: null,
-                services: null,
-                image: '',
-                title: '',
-                username: '',
-                uuid: '',
-            });
-            this.$store.commit('server', null);
-            this.$store.commit('auth', null)
-            this.$store.commit('services', []);
+        async logoutAndRedirect() {
+            await this.logout();
+            await this.$router.push('/settings');
         },
         cancelLogin() {
             this.resetPlexLogin();
@@ -99,7 +89,7 @@ export default {
             this.loginLoading = true;
             await this.ensureAuth();
             this.updateUserInfo().then();
-            this.updateServices().then(()=>{
+            this.updateServices().then(() => {
                 if (this.canQuery)
                     this.updateSections().then();
             });
@@ -108,7 +98,8 @@ export default {
         toDateString(d) {
             return Utils.niceDate(new Date(d));
         },
-        ...mapActions(['markPrimaryServer', 'ensureAuth', 'updateUserInfo', 'updateServices', 'resetPlexLogin', 'updateSections']),
+        ...mapActions(['logout', 'markPrimaryServer', 'ensureAuth', 'updateUserInfo',
+            'updateServices', 'resetPlexLogin', 'updateSections']),
     },
     computed: {
         ...mapGetters(['tvServers', 'tvLoggedIn', "getServerPort", 'canQuery']),

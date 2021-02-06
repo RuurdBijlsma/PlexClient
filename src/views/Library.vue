@@ -115,11 +115,11 @@ export default {
 
             this.hasInitialized = true;
             console.log("Update", this.filter[0]);
-            this.updateSectionFilter({key: this.key, filter: this.filter[0]}).then();
-            this.updateSectionLibrary(this.key).then();
+            this.updateSectionFilter({key: this.sectionKey, filter: this.filter[0]}).then();
+            this.updateSectionLibrary(this.sectionKey).then();
             this.updateDirectory().then(e => console.log('section library', e));
-            this.updateSectionSorts(this.key).then();
-            this.updateSectionFilters(this.key).then();
+            this.updateSectionSorts(this.sectionKey).then();
+            this.updateSectionFilters(this.sectionKey).then();
             console.log({
                 filters: this.filters,
                 sorts: this.sorts,
@@ -131,10 +131,10 @@ export default {
             this.filter = [filter, subFilter.key];
         },
         getFilter(filter) {
-            return this.$store.state.plex.content['sectionFilter' + this.key + '|' + filter] ?? [];
+            return this.$store.state.plex.content['sectionFilter' + this.sectionKey + '|' + filter] ?? [];
         },
         showFilter(filter) {
-            this.updateSectionFilter({key: this.key, filter});
+            this.updateSectionFilter({key: this.sectionKey, filter});
         },
         async toggleSortDirection() {
             this.descendingSort = !this.descendingSort;
@@ -143,7 +143,7 @@ export default {
             if (!this.hasInitialized)
                 return;
             return await this.updateLibraryDirectory({
-                sectionKey: this.key,
+                sectionKey: this.sectionKey,
                 directory: this.dirKey,
                 sort: this.sortQuery,
                 filter: this.filter,
@@ -153,7 +153,7 @@ export default {
             await this.$router.replace({
                 params: {
                     directory: this.dirKey,
-                    key: this.key,
+                    sectionKey: this.sectionKey,
                 },
                 query: {
                     filter: this.filter.join('~'),
@@ -178,23 +178,23 @@ export default {
             return this.sort + (this.descendingSort ? ':desc' : '');
         },
         filters() {
-            return this.$store.state.plex.content['sectionFilters' + this.key] ?? [];
+            return this.$store.state.plex.content['sectionFilters' + this.sectionKey] ?? [];
         },
         sorts() {
-            return this.$store.state.plex.content['sectionSorts' + this.key] ?? [];
+            return this.$store.state.plex.content['sectionSorts' + this.sectionKey] ?? [];
         },
-        key() {
-            return this.$route.params.key ?? '1';
+        sectionKey() {
+            return this.$route.params.sectionKey ?? '1';
         },
         directory() {
-            return this.$store.state.plex.content['libraryChildren' + this.key] ?? [];
+            return this.$store.state.plex.content['libraryChildren' + this.sectionKey] ?? [];
         },
         libraryItems() {
-            return this.$store.state.plex.content['sectionLibrary' + this.key + '|' + this.dirKey + '|' + this.sortQuery + JSON.stringify(this.filter)] ?? [];
+            return this.$store.state.plex.content['sectionLibrary' + this.sectionKey + '|' + this.dirKey + '|' + this.sortQuery + JSON.stringify(this.filter)] ?? [];
         },
     },
     watch: {
-        key() {
+        sectionKey() {
             this.init();
         },
         descendingSort() {

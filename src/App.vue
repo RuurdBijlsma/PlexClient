@@ -31,27 +31,23 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
-// continue watching show progress on home screen media item
+// filter change in url should change content (probably also an issue for other query stuff)
 // arrow right button isn't correct
-// scale /home mainDeck thing based on window size
-// Implement /shows
-// Implement /movies
-// Implement /home
-// Implement search (with autocomplete)
 
+// implement /search page
 // some components could be merged (show & movie)
 // make item menu
 // make mark as watched functionality
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Add not found image to mediaItem (different per type)
 // Make MediaItem work with more item types
+// Resizable scale for views such as library and explore
 
 // Find way around cors for offline images
 // Windows media controls integration
 // If show is in library of similar shows, show this visually and allow click on that show to go there
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
-// Resizable scale for views such as library and explore
 // Fix close button
 // Implement video player (video for web, vlc-video for electron) (big work)
 // Implement controls while browsing with animation when switching
@@ -63,12 +59,18 @@ import Utils from "@/js/Utils";
 // Auto updater in release build
 // Playlists 'n stuff
 // Plex subtitles, how do they work
-// Add download for offline functionality
-// Improve new blurry background getting experience
-//   (maybe first time use default, then on load blurry background for next launch)
+// Add download show/movie for offline functionality
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Improve new blurry background getting experience
+//   (maybe first time use default, then on load blurry background for next launch)
+// Implement /shows
+// Implement /movies
+// Implement /home
+// Implement search (with autocomplete)
+// scale /home mainDeck thing based on window size
+// continue watching show progress on home screen media item
 // Bring some ui features of /movie to /episode
 // implement /movie & /episode
 // implement /season
