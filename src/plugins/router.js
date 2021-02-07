@@ -48,7 +48,7 @@ const routes = [
     {
         path: '/search',
         name: 'Search',
-        component: () => import('../views/SearchResults')
+        component: () => import('../views/Search')
     },
     {
         path: '/playlist/:key',

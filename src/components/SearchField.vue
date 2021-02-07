@@ -1,15 +1,38 @@
 <template>
-    <v-form @submit.prevent="goToSearchPage" class="search-form" v-click-outside="hideResults">
+    <v-form @submit.prevent="goToSearchPage" class="search-form">
         <v-text-field rounded filled dense hide-details="auto"
                       prepend-icon="mdi-magnify"
                       clearable
+                      v-click-outside="{
+                          handler: hideResults,
+                          include: include,
+                      }"
+                      ref="searchInput"
                       autocomplete="off"
                       @focus="showResults = true"
                       @click:clear="clearQuery"
                       v-model="$store.state.search.query"
                       placeholder="Search"/>
-        <blur-card class="search-results" v-show="showResults && !!query">
-            <div class="not-found" v-if="filteredResults.length === 0">
+        <blur-card class="search-results" v-show="showResults && (query !== '' || recentSearches.length > 0)">
+            <div v-if="query === '' || query === null">
+                <h5 class="recent-title">Recent searches</h5>
+                <v-list dense color="transparent">
+                    <v-list-item :disabled="recentQuery === query"
+                                 class="recent-list-item"
+                                 exact :to="`/search?query=${recentQuery}`"
+                                 v-for="recentQuery in recentSearches">
+                        <v-list-item-title>
+                            {{ recentQuery }}
+                        </v-list-item-title>
+                        <v-list-item-action>
+                            <v-btn icon plain small @click.prevent="removeRecent(recentQuery)">
+                                <v-icon small>mdi-close</v-icon>
+                            </v-btn>
+                        </v-list-item-action>
+                    </v-list-item>
+                </v-list>
+            </div>
+            <div class="not-found" v-else-if="filteredResults.length === 0">
                 <p>No results found</p>
             </div>
             <v-list v-else color="transparent" dense>
@@ -35,10 +58,15 @@ export default {
     data: () => ({
         showResults: false,
     }),
+    mounted() {
+    },
     methods: {
+        include() {
+            return [document.querySelector('.search-results')];
+        },
         hideResults() {
+            console.log("Hiding results");
             this.showResults = false;
-            // setTimeout(() => this.showResults = false, 100);
         },
         getChildren(hub) {
             return hub.Metadata ?? hub.Directory;
@@ -46,8 +74,13 @@ export default {
         clearQuery() {
             this.$store.commit('query', '');
         },
+        removeRecent(query) {
+            this.$store.commit('removeRecentSearch', query);
+        },
         async goToSearchPage() {
+            this.$refs.searchInput.blur();
             this.$store.commit('saveResults', {query: this.query, results: this.results});
+            this.$store.commit('addRecentSearch', this.query);
             console.log(this.filteredResults);
             if (this.results.length === 0)
                 await this.search({sectionId: this.sectionKey});
@@ -71,10 +104,15 @@ export default {
         ...mapState({
             query: state => state.search.query,
             results: state => state.search.results,
+            recentSearches: state => state.search.recentSearches,
         })
     },
     watch: {
+        showResults() {
+            console.log("show results change", this.showResults);
+        },
         '$route'() {
+            this.showResults = false;
             this.clearQuery();
         },
         '$store.state.search.query'() {
@@ -87,6 +125,15 @@ export default {
 <style scoped>
 .search-form {
     position: relative;
+}
+
+.recent-title {
+    margin-left: 15px;
+    margin-top: 10px;
+}
+
+.recent-list-item:before {
+    background-color: transparent !important;
 }
 
 .search-results {

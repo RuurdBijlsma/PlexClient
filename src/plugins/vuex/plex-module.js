@@ -296,6 +296,7 @@ export default {
             commit('auth', null)
             commit('services', []);
             commit('resetContent');
+            commit('recentSearches', []);
         },
         async login({dispatch}) {
             let info = {

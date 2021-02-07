@@ -5,8 +5,12 @@
         '--imgHeight': imgHeight + 'px',
     }">
         <div class="image-container">
+            <v-btn outlined icon v-if="isGenre" :width="imgWidth" :height="imgHeight">
+                <v-icon x-large>mdi-drama-masks</v-icon>
+            </v-btn>
             <plex-image class="img"
                         :rounding="itemRounding"
+                        v-else
                         :width="imgWidth" :height="imgHeight"
                         :src="itemThumb"></plex-image>
             <router-link class="item-buttons" :to="to" :style="{
@@ -116,6 +120,9 @@ export default {
         },
     },
     computed: {
+        isGenre() {
+            return this.item?.filter?.includes('genre')
+        },
         itemTitle() {
             return {
                 actor: this.item.tag,

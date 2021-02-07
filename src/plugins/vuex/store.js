@@ -20,6 +20,9 @@ const vuexLocal = new VuexPersistence({
             user: state.plex.user,
             auth: state.plex.auth,
         },
+        search: {
+            recentSearches: state.search.recentSearches,
+        },
     }),
     storage: localForage,
     asyncStorage: true,
@@ -34,8 +37,8 @@ export default new Vuex.Store({
         windowWidth: window.innerWidth,
     },
     mutations: {
-        windowWidth: (state, windowWidth) => state.windowWidth=windowWidth,
-        scrollY: (state, scrollY) => state.scrollY=scrollY,
+        windowWidth: (state, windowWidth) => state.windowWidth = windowWidth,
+        scrollY: (state, scrollY) => state.scrollY = scrollY,
         removePromiseCache: (state, key) => Vue.delete(state.promiseCache, key),
         setPromiseCache: (state, {key, date, promise}) => Vue.set(state.promiseCache, key, {promise, date}),
     },
@@ -50,6 +53,6 @@ export default new Vuex.Store({
             return await promise;
         },
     },
-    modules: {platform, theme, plex,search},
+    modules: {platform, theme, plex, search},
     plugins: [vuexLocal.plugin],
 })

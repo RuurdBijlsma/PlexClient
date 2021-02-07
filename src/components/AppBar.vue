@@ -56,7 +56,7 @@
                             <v-list-item-content>
                                 <v-list-item-title>{{ $store.state.plex.user.username }}</v-list-item-title>
                                 <v-list-item-title>
-                                    <v-btn class="logout-button" @click="logout" small plain>Log out</v-btn>
+                                    <v-btn class="logout-button" @click="logoutAndRedirect" small plain>Log out</v-btn>
                                 </v-list-item-title>
                             </v-list-item-content>
                         </v-list-item>
