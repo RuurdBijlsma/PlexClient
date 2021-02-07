@@ -27,7 +27,6 @@ linear-gradient(to left, rgba(0, 0, 0, ${contentRight ? 0 : 1}) 0%, rgba(0, 0, 0
                             :key="item.ratingKey"
                             :measure-vertical="measureVertical"
                             :size="size"
-                            :section-key="sectionKey"
                             :type="type"
                             :sort-prop="sortProp"
                             :vertical-episode="verticalEpisode"

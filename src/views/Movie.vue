@@ -8,15 +8,15 @@
                         hide-title></plex-image>
         </div>
         <div class="right-column">
-            <router-link no-style :to="`/episode/${movie.ratingKey}`" class="show-title">
+            <router-link no-style :to="`/movie/${movie.ratingKey}`" class="show-title">
                 <h2>{{ movie.title }}</h2>
             </router-link>
             <data-header :metadata="movie"/>
             <data-play class="mt-3" :metadata="movie"/>
             <data-details :metadata="movie"/>
-            <item-row :section-key="movie.librarySectionID" class="mt-13" title="Cast" :items="movie.Role"
+            <item-row class="mt-13" title="Cast" :items="movie.Role"
                       type="actor"/>
-            <item-row :section-key="movie.librarySectionID" v-for="item in related" class="mt-13" :title="item.title"
+            <item-row v-for="item in related" class="mt-13" :title="item.title"
                       :items="item.Metadata"></item-row>
             <h3 class="sub-header mt-13">Similar movies</h3>
             <v-chip-group show-arrows>

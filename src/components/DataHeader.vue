@@ -2,20 +2,20 @@
     <div class="show-value">
         <v-divider class="mt-2 mb-2"></v-divider>
         <div class="movie-sub-header mt-2">
-            <router-link no-style :to="`/library/${metadata.librarySectionID}/?filter=year~${metadata.year}`"
-                         class="ml-3">
+            <router-link v-if="metadata.year" no-style :to="`/library/${metadata.librarySectionID}/?filter=year~${metadata.year}`"
+                         class="ml-3 mr-5">
                 {{ metadata.year }}
             </router-link>
-            <span class="ml-8">{{ duration }}</span>
-            <v-chip :to="`/library/${metadata.librarySectionID}/?filter=contentRating~${metadata.contentRating}`"
-                    class="ml-8" small>{{ metadata.contentRating }}
+            <span v-if="metadata.duration" class="ml-3 mr-5">{{ duration }}</span>
+            <v-chip v-if="metadata.contentRating" :to="`/library/${metadata.librarySectionID}/?filter=contentRating~${metadata.contentRating}`"
+                    class="ml-3 mr-5" small>{{ metadata.contentRating }}
             </v-chip>
             <div class="movie-sub-header" v-if="metadata.rating && !hideRatings">
-                <span class="ml-8">{{ metadata.rating * 10 }}% </span>
+                <span class="ml-3 mr-5">{{ metadata.rating * 10 }}% </span>
                 <div class="tomato"></div>
             </div>
             <div class="movie-sub-header" v-if="metadata.audienceRating && !hideRatings">
-                <span class="ml-3">{{ metadata.audienceRating * 10 }}% </span>
+                <span class="mr-3">{{ metadata.audienceRating * 10 }}% </span>
                 <div class="popcorn"></div>
             </div>
         </div>

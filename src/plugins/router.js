@@ -45,6 +45,16 @@ const routes = [
         name: 'Explore',
         component: () => import('../views/Explore')
     },
+    {
+        path: '/search',
+        name: 'Search',
+        component: () => import('../views/SearchResults')
+    },
+    {
+        path: '/playlist/:key',
+        name: 'Playlist',
+        component: () => import('../views/Playlist')
+    },
 ]
 
 const router = new VueRouter({

@@ -1,19 +1,14 @@
 <template>
-    <v-form @submit.prevent="goToSearchPage" class="search-form">
+    <v-form @submit.prevent="goToSearchPage" class="search-form" v-click-outside="hideResults">
         <v-text-field rounded filled dense hide-details="auto"
                       prepend-icon="mdi-magnify"
                       clearable
                       autocomplete="off"
                       @focus="showResults = true"
-                      @blur="hideResults"
                       @click:clear="clearQuery"
                       v-model="$store.state.search.query"
                       placeholder="Search"/>
-        <div class="search-results" v-show="showResults && !!query" :style="{
-            backdropFilter: `blur(60px) brightness(${$vuetify.theme.dark ? '70' : '130'}%) saturate(130%)`,
-            boxShadow: `0 15px 40px 0 rgba(${$vuetify.theme.dark ? '100,100,100' : '0,0,0'}, 0.3)`,
-            backgroundImage: `linear-gradient(transparent, rgba(${$vuetify.theme.dark ? '50,50,50' : '255,255,255'}, 0.4))`,
-        }">
+        <blur-card class="search-results" v-show="showResults && !!query">
             <div class="not-found" v-if="filteredResults.length === 0">
                 <p>No results found</p>
             </div>
@@ -25,23 +20,25 @@
                                      :item="item"/>
                 </div>
             </v-list>
-        </div>
+        </blur-card>
     </v-form>
 </template>
 
 <script>
 import {mapActions, mapState} from "vuex";
 import MediaListItem from "@/components/MediaListItem";
+import BlurCard from "@/components/BlurCard";
 
 export default {
     name: "SearchField",
-    components: {MediaListItem},
+    components: {BlurCard, MediaListItem},
     data: () => ({
         showResults: false,
     }),
     methods: {
         hideResults() {
-            setTimeout(() => this.showResults = false, 100);
+            this.showResults = false;
+            // setTimeout(() => this.showResults = false, 100);
         },
         getChildren(hub) {
             return hub.Metadata ?? hub.Directory;
@@ -50,8 +47,9 @@ export default {
             this.$store.commit('query', '');
         },
         async goToSearchPage() {
+            this.$store.commit('saveResults', {query: this.query, results: this.results});
             console.log(this.filteredResults);
-            if (!this.filteredResults)
+            if (this.results.length === 0)
                 await this.search({sectionId: this.sectionKey});
 
             console.log(this.$route.path, this.$route.query.query, this.query)
@@ -95,7 +93,6 @@ export default {
     max-height: calc(100vh - 100px);
     position: absolute;
     width: 330px;
-    border-radius: 10px;
     overflow: hidden;
     overflow-y: auto;
     padding: 10px 6px;

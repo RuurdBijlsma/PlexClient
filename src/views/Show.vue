@@ -21,9 +21,9 @@
                 <div class="seasons">
                     <media-item class="season" v-for="season in seasons" :item="season"/>
                 </div>
-                <item-row :section-key="show.librarySectionID" class="mt-13" title="Cast" :items="show.Role"
+                <item-row class="mt-13" title="Cast" :items="show.Role"
                           type="actor"/>
-                <item-row :section-key="show.librarySectionID" v-for="item in related" class="mt-13" :title="item.title"
+                <item-row v-for="item in related" class="mt-13" :title="item.title"
                           :items="item.Metadata"></item-row>
                 <h3 class="sub-header mt-13">Similar shows</h3>
                 <v-chip-group show-arrows>

@@ -1,10 +1,15 @@
 <template>
     <v-list-item>
+        <div class="ml-4 mr-8 item-number" v-if="!isNaN(number)">
+            {{ number }}
+        </div>
         <div class="item-img mr-4" :style="{
             '--imgWidth': imgWidth + 'px',
             '--imgHeight': imgHeight + 'px',
         }">
-            <v-btn outlined icon v-if="isGenre"><v-icon>mdi-drama-masks</v-icon></v-btn>
+            <v-btn outlined icon v-if="isGenre">
+                <v-icon>mdi-drama-masks</v-icon>
+            </v-btn>
             <plex-image v-else :rounding="itemRounding"
                         :src="itemThumb"></plex-image>
             <router-link :to="to">
@@ -23,12 +28,8 @@
                 <router-link no-style :to="to">
                     <v-list-item-subtitle :title="item.title">{{ item.title }}</v-list-item-subtitle>
                 </router-link>
-                <v-list-item-subtitle class="grey-subtitle">
-                    <router-link :to="`/season/${item.parentRatingKey}`" no-style :title="item.parentTitle">
-                        S{{ item.parentIndex }}
-                    </router-link>
-                    <span> • </span>
-                    <router-link :to="to" no-style :title="item.title">E{{ item.index }}</router-link>
+                <v-list-item-subtitle>
+                    <episode-link class="grey-subtitle" :metadata="item"/>
                 </v-list-item-subtitle>
 
             </div>
@@ -47,15 +48,20 @@
                 </router-link>
             </div>
         </v-list-item-content>
+        <div class="item-duration" v-if="showDuration">
+            {{ duration }}
+        </div>
     </v-list-item>
 </template>
 
 <script>
 import PlexImage from "@/components/PlexImage";
+import EpisodeLink from "@/components/EpisodeLink";
+import Utils from "@/js/Utils";
 
 export default {
     name: "MediaListItem",
-    components: {PlexImage},
+    components: {EpisodeLink, PlexImage},
     props: {
         item: {
             type: Object,
@@ -77,9 +83,20 @@ export default {
             type: Boolean,
             default: false,
         },
+        number: {
+            type: Number,
+            default: NaN,
+        },
+        showDuration: {
+            type: Boolean,
+            default:false,
+        }
     },
     computed: {
-        isGenre(){
+        duration() {
+            return Utils.niceTime(new Date(this.item.duration));
+        },
+        isGenre() {
             return this.item?.filter?.includes('genre')
         },
         itemTitle() {
@@ -100,6 +117,8 @@ export default {
         itemThumb() {
             if (this.itemType === 'episode') {
                 return this.item.grandparentThumb;
+            } else if (this.itemType === 'playlist') {
+                return this.item.composite;
             } else {
                 return this.item.thumb;
             }
@@ -110,11 +129,13 @@ export default {
         imgWidth() {
             return {
                 actor: 45,
+                playlist: 45,
             }[this.itemType] ?? 60 / 3 * 2;
         },
         imgHeight() {
             return {
                 actor: 45,
+                playlist: 45,
             }[this.itemType] ?? 60;
         },
     }
@@ -122,6 +143,11 @@ export default {
 </script>
 
 <style scoped>
+.item-number {
+    opacity: 0.7;
+    font-size: 14px;
+}
+
 .item-img {
     width: var(--imgWidth);
     height: var(--imgHeight);
@@ -150,7 +176,12 @@ export default {
     opacity: 1;
 }
 
-.grey-subtitle > * {
+.grey-subtitle {
     color: var(--softerForeground) !important;
+}
+
+.item-duration {
+    opacity: 0.7;
+    font-size: 14px;
 }
 </style>

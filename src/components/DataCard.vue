@@ -10,9 +10,7 @@
                 </router-link>
                 <router-link class="ellipsis" to="/" no-style>{{ metadata.title }}</router-link>
                 <div>
-                    <router-link to="/" no-style>S{{ metadata.index }}</router-link>
-                    <span> • </span>
-                    <router-link to="/" no-style>E{{ metadata.parentIndex }}</router-link>
+                    <episode-link :metadata="metadata"/>
                 </div>
             </div>
             <router-link v-else class="ellipsis" :to="`/movie/${metadata.ratingKey}`" no-style>
@@ -38,10 +36,11 @@ import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
 import DataHeader from "@/components/DataHeader";
+import EpisodeLink from "@/components/EpisodeLink";
 
 export default {
     name: "DataCard",
-    components: {DataHeader, ItemRow, MediaItem, PlexImage},
+    components: {EpisodeLink, DataHeader, ItemRow, MediaItem, PlexImage},
     props: {
         metadata: {
             type: Object,

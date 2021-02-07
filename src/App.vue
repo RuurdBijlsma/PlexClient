@@ -34,7 +34,8 @@ import Utils from "@/js/Utils";
 // filter change in url should change content (probably also an issue for other query stuff)
 // arrow right button isn't correct
 
-// implement /search page
+// make way to access playlists (library/movies probably somewhere)
+// show recent searches when clicking search bar and its empty
 // some components could be merged (show & movie)
 // make item menu
 // make mark as watched functionality
@@ -42,6 +43,7 @@ import Utils from "@/js/Utils";
 // Add not found image to mediaItem (different per type)
 // Make MediaItem work with more item types
 // Resizable scale for views such as library and explore
+// implement rearranging playlist order
 
 // Find way around cors for offline images
 // Windows media controls integration
@@ -63,6 +65,7 @@ import Utils from "@/js/Utils";
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// implement /search page
 // Improve new blurry background getting experience
 //   (maybe first time use default, then on load blurry background for next launch)
 // Implement /shows
@@ -183,7 +186,7 @@ html {
 /*}*/
 a[no-style] {
     text-decoration: none;
-    color: var(--foreground) !important;
+    color: inherit !important;
 }
 
 a[no-style]:hover {

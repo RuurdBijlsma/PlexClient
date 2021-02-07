@@ -32,7 +32,7 @@
             </div>
         </div>
         <div class="item-bottom" v-if="!hideTitle" :style="{
-            textAlign: itemType === 'actor' ? 'center' : 'left',
+            textAlign: itemType === 'actor' || itemType === 'tag' ? 'center' : 'left',
         }">
             <v-icon v-if="itemType === 'folder'" class="mr-2">mdi-folder</v-icon>
             <div v-if="showContext && itemType === 'episode'">
@@ -43,11 +43,7 @@
                     {{ item.title }}
                 </router-link>
                 <div class="item-grey-text">
-                    <router-link :to="`/season/${item.parentRatingKey}`" no-style :title="item.parentTitle">
-                        S{{ item.parentIndex }}
-                    </router-link>
-                    •
-                    <router-link :to="to" no-style :title="item.title">E{{ item.index }}</router-link>
+                    <episode-link :metadata="item"/>
                 </div>
             </div>
             <div v-else-if="showContext && itemType === 'season'">
@@ -60,7 +56,12 @@
             </div>
             <div v-else>
                 <router-link class="item-title" :to="to" :title="itemTitle">{{ itemTitle }}</router-link>
-                <div class="item-grey-text" v-for="subtitle of itemSubtitles" :title="subtitle">{{ subtitle }}</div>
+                <div
+                    class="item-grey-text"
+                    v-for="subtitle of itemSubtitles"
+                    :title="subtitle">
+                    {{ subtitle }}
+                </div>
             </div>
         </div>
     </div>
@@ -70,10 +71,12 @@
 import PlexImage from "@/components/PlexImage";
 import ta from 'time-ago'
 import Utils from "@/js/Utils";
+import {mapActions} from "vuex";
+import EpisodeLink from "@/components/EpisodeLink";
 
 export default {
     name: "MediaItem",
-    components: {PlexImage},
+    components: {EpisodeLink, PlexImage},
     props: {
         item: {
             type: Object,
@@ -90,10 +93,6 @@ export default {
         type: {
             type: String,
             default: null,
-        },
-        sectionKey: {
-            type: Number,
-            default: 1,
         },
         hideTitle: {
             type: Boolean,
@@ -120,41 +119,45 @@ export default {
         itemTitle() {
             return {
                 actor: this.item.tag,
+                tag: this.item.tag,
             }[this.itemType] ?? this.item.title;
         },
         itemSubtitles() {
             let subtitles = []
 
-            subtitles.push(({
-                show: `${this.item.childCount} season${this.item.childCount === 1 ? '' : 's'}`,
-                movie: this.item.year,
-                season: `${this.item.leafCount} episode${this.item.leafCount === 1 ? '' : 's'}`,
-                actor: this.item.role?.replaceAll('|', ', '),
-                episode: `Episode ${this.item.index}`,
-            }[this.itemType] ?? []));
+            subtitles.push(...[{
+                tag: () => this.item.reasonTitle,
+                show: () => `${this.item.childCount} season${this.item.childCount === 1 ? '' : 's'}`,
+                movie: () => this.item.year,
+                season: () => `${this.item.leafCount} episode${this.item.leafCount === 1 ? '' : 's'}`,
+                actor: () => this.item.role?.replaceAll('|', ', '),
+                episode: () => `Episode ${this.item.index}`,
+            }[this.itemType]?.()] ?? []);
 
             if (this.sortProp !== null && this.sortProp !== 'titleSort') {
                 let sortValue = this.item[this.sortProp];
                 subtitles = sortValue === undefined ? [] : [{
-                    rating: v => `⭐ ${v * 10}%`,
-                    audienceRating: v => `🌟 ${v * 10}%`,
-                    originallyAvailableAt: v => Utils.niceDate(new Date(v)),
-                    lastViewedAt: v => ta.ago(new Date(v * 1000)),
-                    duration: v => Utils.niceTime(new Date(v)),
-                    addedAt: v => ta.ago(new Date(v * 1000)),
-                }[this.sortProp]?.(sortValue) ?? sortValue]
+                    rating: () => `⭐ ${sortValue * 10}%`,
+                    audienceRating: () => `🌟 ${sortValue * 10}%`,
+                    originallyAvailableAt: () => Utils.niceDate(new Date(sortValue)),
+                    lastViewedAt: () => ta.ago(new Date(sortValue * 1000)),
+                    duration: () => Utils.niceTime(new Date(sortValue)),
+                    addedAt: () => ta.ago(new Date(sortValue * 1000)),
+                }[this.sortProp]?.() ?? sortValue]
             }
 
             return [...subtitles];
         },
         to() {
             return {
-                actor: `/library/${this.sectionKey}/all?filter=actor~${this.item.id}`,
-            }[this.itemType] ?? `/${this.itemType}/${this.item.ratingKey}`;
+                actor: () => `/library/${this.item.librarySectionID}/all?filter=actor~${this.item.id}`,
+                tag: () => `/library/${this.item.librarySectionID}/all?filter=${this.item.filter.replace('=', '~')}`,
+            }[this.itemType]?.() ?? `/${this.itemType}/${this.item.ratingKey}`;
         },
         itemRounding() {
             return {
                 actor: '50%',
+                tag: '50%',
             }[this.itemType] ?? '0.4vw';
         },
         itemThumb() {
@@ -162,6 +165,8 @@ export default {
                 return this.item.grandparentThumb;
             } else if (this.horizontalMovie && this.itemType === 'movie') {
                 return this.item.art;
+            } else if (this.itemType === 'playlist') {
+                return this.item.composite;
             } else {
                 return this.item.thumb;
             }
@@ -190,7 +195,9 @@ export default {
                 show: 10 / 15,
                 movie: 10 / 15,
                 season: 10 / 15,
+                playlist: 1,
                 actor: 1,
+                tag: 1,
             }[this.itemType] ?? 16 / 9;
         },
     }

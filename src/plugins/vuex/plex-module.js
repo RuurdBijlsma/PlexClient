@@ -65,8 +65,8 @@ export default {
         },
         plexUrl: (state, getters) => url => getters.plexApi._generateRelativeUrl(url) +
             '&' + qs.stringify(({'X-Plex-Token': state.server?.accessToken})),
-        transcodeUrl: (state, getters) => ({url, width, height}) =>
-            getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url,})),
+        transcodeUrl: (state, getters) => ({url, width, height, upscale = true}) =>
+            getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url, upscale: +upscale})),
     },
     actions: {
         async updatePublicIp({commit}) {
@@ -76,6 +76,21 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
+        async updatePlaylist({dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/playlists/${key}`});
+            commit('content', {key: 'playlist' + key, content: content.Metadata[0]});
+            return content.Metadata[0];
+        },
+        async updatePlaylistItems({dispatch, commit}, key) {
+            let content = await dispatch('query', {url: `/playlists/${key}/items`});
+            commit('content', {key: 'playlistItems' + key, content: content.Metadata});
+            return content.Metadata;
+        },
+        async updatePlaylists({dispatch, commit}, sectionID) {
+            let content = await dispatch('query', {url: `/playlists/?sectionID=${sectionID}`});
+            commit('content', {key: 'playlists' + sectionID, content: content});
+            return content;
+        },
         async searchPlex({dispatch, commit}, {query, sectionId}) {
             const urlQuery = qs.stringify({
                 includeCollections: 1,
