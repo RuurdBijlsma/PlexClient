@@ -134,7 +134,9 @@ export default {
     },
     methods: {
         updateResize() {
-            this.$store.commit('windowWidth', window.innerWidth);
+            let ww = window.innerWidth;
+            if (this.$store.state.windowWidth !== ww)
+                this.$store.commit('windowWidth', ww);
         },
         handleCode() {
             if (location.search.includes('?plex_auth=')) {
