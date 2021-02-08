@@ -88,8 +88,8 @@ export default {
         },
         async updatePlaylists({dispatch, commit}, sectionID) {
             let content = await dispatch('query', {url: `/playlists/?sectionID=${sectionID}`});
-            commit('content', {key: 'playlists' + sectionID, content: content});
-            return content;
+            commit('content', {key: 'playlists' + sectionID, content: content.Metadata});
+            return content.Metadata;
         },
         async searchPlex({dispatch, commit}, {query, sectionId}) {
             const urlQuery = qs.stringify({

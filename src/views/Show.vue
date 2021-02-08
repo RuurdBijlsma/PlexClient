@@ -1,16 +1,10 @@
 <template>
     <v-lazy>
-        <div v-if="show" class="show">
-            <div class="left-column">
-                <plex-image
-                    glow
-                    class="ml-6"
-                    rounding="10px"
-                    :src="show.thumb"
-                    :width="200"
-                    :height="300"/>
-            </div>
-            <div class="right-column">
+        <div>
+            <glow-column-page v-if="show"
+                              :src="show.thumb"
+                              :img-width="200 * uiScale"
+                              :img-height="300 * uiScale">
                 <router-link no-style class="show-title" :to="`/show/${show.ratingKey}`">
                     <h2>{{ show.title }}</h2>
                 </router-link>
@@ -19,38 +13,42 @@
                 <data-details class="mt-4" :metadata="show"/>
                 <h3 class="sub-header mt-13">Seasons</h3>
                 <div class="seasons">
-                    <media-item class="season" v-for="season in seasons" :item="season"/>
+                    <media-item class="season" v-for="season in seasons"
+                                :item="season"
+                                :size="130 * uiScale"/>
                 </div>
                 <item-row class="mt-13" title="Cast" :items="show.Role"
+                          :section-key="show.librarySectionID"
+                          :size="130 * uiScale"
                           type="actor"/>
                 <item-row v-for="item in related" class="mt-13" :title="item.title"
+                          :size="130 * uiScale"
                           :items="item.Metadata"></item-row>
                 <h3 class="sub-header mt-13">Similar shows</h3>
                 <v-chip-group show-arrows>
                     <v-chip v-for="item in show.Similar" :key="item.id">{{ item.tag }}</v-chip>
                 </v-chip-group>
-            </div>
+            </glow-column-page>
         </div>
-
     </v-lazy>
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
 import DataDetails from "@/components/DataDetails";
 import DataHeader from "@/components/DataHeader";
 import DataPlay from "@/components/DataPlay";
+import GlowColumnPage from "@/components/GlowColumnPage";
 
 export default {
     name: "Show",
-    components: {DataPlay, DataHeader, DataDetails, ItemRow, PlexImage, MediaItem},
+    components: {GlowColumnPage, DataPlay, DataHeader, DataDetails, ItemRow, PlexImage, MediaItem},
     data: () => ({}),
     async mounted() {
         await this.$store.restored;
-        console.log(5555, this.key);
         await this.init();
         console.log(this.show);
     },
@@ -75,6 +73,9 @@ export default {
         related() {
             return this.$store.state.plex.content['metadataRelated' + this.key];
         },
+        ...mapState({
+            uiScale: state => state.uiScale,
+        }),
     },
     watch: {
         key() {
@@ -85,23 +86,6 @@ export default {
 </script>
 
 <style scoped>
-.show {
-    max-width: 1300px;
-    width: calc(100% - 20px);
-    padding: 30px 10px;
-    margin: 0 auto;
-    display: flex;
-}
-
-.left-column {
-    position: fixed;
-}
-
-.right-column {
-    width: calc(100% - 224px - 50px);
-    margin-left: calc(224px + 50px);
-}
-
 .show-title {
     font-weight: 400;
 }
@@ -119,5 +103,4 @@ export default {
 .season {
     margin: 8px 15px;
 }
-
 </style>

@@ -31,18 +31,15 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 
 // TODO
-// filter change in url should change content (probably also an issue for other query stuff)
-// arrow right button isn't correct
 
-// make way to access playlists (library/movies probably somewhere)
-// show recent searches when clicking search bar and its empty
+// Add slider for ui scale
+// make mark as watched functionality
+// remove play icon from places it doesn't belong
 // some components could be merged (show & movie)
 // make item menu
-// make mark as watched functionality
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Add not found image to mediaItem (different per type)
 // Make MediaItem work with more item types
-// Resizable scale for views such as library and explore
 // implement rearranging playlist order
 
 // Find way around cors for offline images
@@ -56,7 +53,7 @@ import Utils from "@/js/Utils";
 // Theme color based on artwork of episode/show/movie page?
 // Switch to bottom bar navigation for small screen
 // Implement server settings in settings (maybe steal settings layout from Plex)
-// Add sonarr domain input for similar shows linking
+// Add Sonarr domain input for similar shows linking
 // Keyboard shortcuts
 // Auto updater in release build
 // Playlists 'n stuff
@@ -65,6 +62,11 @@ import Utils from "@/js/Utils";
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Resizable scale for views such as library and explore
+// show recent searches when clicking search bar and its empty
+// make way to access playlists (library/movies probably somewhere)
+// arrow right button isn't correct
+// filter change in url should change content (probably also an issue for other query stuff)
 // implement /search page
 // Improve new blurry background getting experience
 //   (maybe first time use default, then on load blurry background for next launch)

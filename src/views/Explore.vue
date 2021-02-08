@@ -1,18 +1,18 @@
 <template>
     <div class="explore">
-        <v-lazy>
-            <div class="on-deck" v-if="onDeck">
-                <data-card class="main-card mb-10" :img-width="imgWidth" :metadata="mainDeck"></data-card>
-                <item-row title="On deck" class="sub-deck" horizontal-movie show-context :size="300"
-                          :to="`/library/${sectionKey}/onDeck`"
-                          :items="subDeck"/>
-            </div>
-        </v-lazy>
+        <div class="on-deck" v-if="onDeck">
+            <data-card class="main-card mb-10" :img-width="imgWidth" :metadata="mainDeck"></data-card>
+            <item-row title="On deck" class="sub-deck" horizontal-movie show-context :size="300 * uiScale"
+                      :to="`/library/${sectionKey}/onDeck`"
+                      :items="subDeck"/>
+        </div>
 
-        <v-lazy :height="section.type === 'episode' ? 270 : 353" v-for="section in filteredHub" :key="section.hubKey" class="mb-10">
+        <v-lazy :height="(section.type === 'episode' ? 140 : 225) * uiScale + 120"
+                v-for="section in filteredHub" :key="section.hubKey"
+                class="mb-7">
             <item-row :title="section.title"
                       :items="section.Metadata"
-                      :size="section.type === 'episode' ? 250 : 150"
+                      :size="(section.type === 'episode' ? 250 : 150) * uiScale"
                       :vertical-episode="section.type === 'mixed'"
                       show-context/>
         </v-lazy>
@@ -66,6 +66,7 @@ export default {
         },
         ...mapState({
             windowWidth: state => state.windowWidth,
+            uiScale: state => state.uiScale,
         }),
     },
     watch: {
@@ -99,7 +100,7 @@ export default {
 
     .sub-deck {
         width: 100% !important;
-        margin-bottom: 40px;
+        margin-bottom: 30px;
     }
 }
 

@@ -118,6 +118,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        sectionKey: {
+            type: Number,
+            default: NaN,
+        },
     },
     computed: {
         isGenre() {
@@ -155,10 +159,13 @@ export default {
 
             return [...subtitles];
         },
+        itemSection() {
+            return (isNaN(this.sectionKey) ? this.item.librarySectionID : this.sectionKey) ?? 1;
+        },
         to() {
             return {
-                actor: () => `/library/${this.item.librarySectionID}/all?filter=actor~${this.item.id}`,
-                tag: () => `/library/${this.item.librarySectionID}/all?filter=${this.item.filter.replace('=', '~')}`,
+                actor: () => `/library/${this.itemSection}/all?filter=actor~${this.item.id}`,
+                tag: () => `/library/${this.itemSection}/all?filter=${this.item.filter.replace('=', '~')}`,
             }[this.itemType]?.() ?? `/${this.itemType}/${this.item.ratingKey}`;
         },
         itemRounding() {

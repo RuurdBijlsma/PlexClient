@@ -1,48 +1,40 @@
 <template>
-    <div v-if="episode" class="show">
-        <div class="left-column">
-            <plex-image :src="episode.thumb" glow
-                        :width="350" :height="350/16*9"
-                        rounding="10px" :item="episode"
-                        class="ml-6"
-                        hide-title></plex-image>
-        </div>
-        <div class="right-column">
-            <router-link no-style :to="`/show/${episode.grandparentRatingKey}`" class="show-title">
-                <h2>{{ episode.grandparentTitle }}</h2>
+    <glow-column-page v-if="episode" :src="episode.thumb"
+                      :img-width="350 * uiScale"
+                      :img-height="350 / 16 * 9 * uiScale">
+        <router-link no-style :to="`/show/${episode.grandparentRatingKey}`" class="show-title">
+            <h2>{{ episode.grandparentTitle }}</h2>
+        </router-link>
+        <router-link no-style :to="`/season/${episode.parentRatingKey}`" class="show-parent">
+            <p>{{ episode.parentTitle }}</p>
+        </router-link>
+        <p>Episode {{ episode.index }} •
+            <router-link no-style :to="`/episode/${episode.ratingKey}`" class="show-parent">
+                {{ episode.title }}
             </router-link>
-            <router-link no-style :to="`/season/${episode.parentRatingKey}`" class="show-parent">
-                <p>{{ episode.parentTitle }}</p>
-            </router-link>
-            <p>Episode {{ episode.index }} •
-                <router-link no-style :to="`/episode/${episode.ratingKey}`" class="show-parent">
-                    {{ episode.title }}
-                </router-link>
-            </p>
-            <data-header :metadata="episode"/>
-            <data-play class="mt-3" :metadata="episode"/>
-            <data-details :metadata="episode"/>
-        </div>
-    </div>
+        </p>
+        <data-header :metadata="episode"/>
+        <data-play class="mt-3" :metadata="episode"/>
+        <data-details :metadata="episode"/>
+    </glow-column-page>
 </template>
 
 <script>
-import {mapActions} from "vuex";
-import PlexImage from "@/components/PlexImage";
+import {mapActions, mapState} from "vuex";
 import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
 import Utils from "@/js/Utils";
 import DataHeader from "@/components/DataHeader";
 import DataDetails from "@/components/DataDetails";
 import DataPlay from "@/components/DataPlay";
+import GlowColumnPage from "@/components/GlowColumnPage";
 
 export default {
-    name: "Show",
-    components: {DataPlay, DataDetails, DataHeader, ItemRow, PlexImage, MediaItem},
+    name: "Episode",
+    components: {GlowColumnPage, DataPlay, DataDetails, DataHeader, ItemRow, MediaItem},
     data: () => ({}),
     async mounted() {
         await this.$store.restored;
-        console.log(5555, this.key);
         await this.init();
         console.log(this.episode);
     },
@@ -65,6 +57,9 @@ export default {
         episode() {
             return this.$store.state.plex.content['metadata' + this.key];
         },
+        ...mapState({
+            uiScale: state => state.uiScale,
+        }),
     },
     watch: {
         key() {
@@ -75,23 +70,6 @@ export default {
 </script>
 
 <style scoped>
-.show {
-    max-width: 1300px;
-    width: calc(100% - 20px);
-    padding: 30px 10px;
-    margin: 0 auto;
-    display: flex;
-}
-
-.left-column {
-    position: fixed;
-}
-
-.right-column {
-    width: calc(100% - 374px - 50px);
-    margin-left: calc(374px + 50px);
-}
-
 .show-title {
     font-weight: 400;
 }
@@ -101,7 +79,7 @@ export default {
 }
 
 .show-parent > p {
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 </style>

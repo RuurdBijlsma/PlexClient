@@ -35,6 +35,7 @@ export default new Vuex.Store({
         promiseCache: {},
         scrollY: window.scrollY,
         windowWidth: window.innerWidth,
+        uiScale: 1,
     },
     mutations: {
         windowWidth: (state, windowWidth) => state.windowWidth = windowWidth,

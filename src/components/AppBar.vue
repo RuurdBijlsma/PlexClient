@@ -23,13 +23,21 @@
                     </span>
                     </template>
                     <v-list rounded dense class="no-drag">
-                        <v-list-item :to="`/library/${section.key}`" v-for="section in sections">
+                        <v-list-item :to="`/library/${section.key}`" v-for="section in sections" :key="section.key">
                             <v-list-item-icon>
                                 <v-icon v-if="section.type === 'show'">mdi-television-classic</v-icon>
                                 <v-icon v-else>mdi-movie-open-outline</v-icon>
                             </v-list-item-icon>
                             <v-list-item-content>
                                 <v-list-item-title>{{ section.title }}</v-list-item-title>
+                            </v-list-item-content>
+                        </v-list-item>
+                        <v-list-item to="/playlists">
+                            <v-list-item-icon>
+                                <v-icon>mdi-playlist-play</v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-content>
+                                <v-list-item-title>Playlists</v-list-item-title>
                             </v-list-item-content>
                         </v-list-item>
                     </v-list>

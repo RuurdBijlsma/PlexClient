@@ -4,7 +4,7 @@
             <router-link no-style v-if="to" :to="to">
                 <h3 class="control-title">{{ title }}</h3>
             </router-link>
-            <h3 class="control-title" v-else>{{title}}</h3>
+            <h3 class="control-title" v-else>{{ title }}</h3>
             <div class="right-control" v-if="itemGroups.length > itemsPerPage">
                 <span class="scroll-progress mr-2">
                     {{ (inView * rows) + 1 }} / {{ items.length }}
@@ -28,6 +28,7 @@ linear-gradient(to left, rgba(0, 0, 0, ${contentRight ? 0 : 1}) 0%, rgba(0, 0, 0
                             :measure-vertical="measureVertical"
                             :size="size"
                             :type="type"
+                            :section-key="sectionKey"
                             :sort-prop="sortProp"
                             :vertical-episode="verticalEpisode"
                             :horizontal-movie="horizontalMovie"
@@ -70,10 +71,6 @@ export default {
             type: String,
             default: '',
         },
-        sectionKey: {
-            type: Number,
-            default: 1,
-        },
         measureVertical: {
             type: Boolean,
             default: false,
@@ -94,6 +91,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        sectionKey: {
+            type: Number,
+            default: NaN,
+        },
     },
     data: () => ({
         scrollWidth: 0,
@@ -109,7 +110,7 @@ export default {
     mounted() {
         window.addEventListener('resize', this.resizeListener, false);
         this.$refs.container.addEventListener('scroll', this.scrollListener, false);
-        this.$nextTick(() => this.resizeListener());
+        this.resizeInterval = setInterval(() => this.resizeListener(), 1000 / 3);
         this.resizeListener();
         this.scrollListener();
     },

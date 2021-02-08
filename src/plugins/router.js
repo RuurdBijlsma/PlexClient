@@ -55,6 +55,11 @@ const routes = [
         name: 'Playlist',
         component: () => import('../views/Playlist')
     },
+    {
+        path: '/playlists/',
+        name: 'Playlists',
+        component: () => import('../views/Playlists')
+    },
 ]
 
 const router = new VueRouter({

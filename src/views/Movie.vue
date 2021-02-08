@@ -1,33 +1,30 @@
 <template>
-    <div v-if="movie" class="show">
-        <div class="left-column">
-            <plex-image :src="movie.thumb" glow
-                        :width="250" :height="375"
-                        rounding="10px" :item="movie"
-                        class="ml-6"
-                        hide-title></plex-image>
-        </div>
-        <div class="right-column">
-            <router-link no-style :to="`/movie/${movie.ratingKey}`" class="show-title">
-                <h2>{{ movie.title }}</h2>
-            </router-link>
-            <data-header :metadata="movie"/>
-            <data-play class="mt-3" :metadata="movie"/>
-            <data-details :metadata="movie"/>
-            <item-row class="mt-13" title="Cast" :items="movie.Role"
-                      type="actor"/>
-            <item-row v-for="item in related" class="mt-13" :title="item.title"
-                      :items="item.Metadata"></item-row>
-            <h3 class="sub-header mt-13">Similar movies</h3>
-            <v-chip-group show-arrows>
-                <v-chip v-for="item in movie.Similar" :key="item.id">{{ item.tag }}</v-chip>
-            </v-chip-group>
-        </div>
-    </div>
+    <glow-column-page v-if="movie"
+                      :img-width="250 * uiScale"
+                      :img-height="375 * uiScale"
+                      :src="movie.thumb">
+        <router-link no-style :to="`/movie/${movie.ratingKey}`" class="show-title">
+            <h2>{{ movie.title }}</h2>
+        </router-link>
+        <data-header :metadata="movie"/>
+        <data-play class="mt-3" :metadata="movie"/>
+        <data-details :metadata="movie"/>
+        <item-row class="mt-13" title="Cast" :items="movie.Role"
+                  :size="130 * uiScale"
+                  :section-key="movie.librarySectionID"
+                  type="actor"/>
+        <item-row v-for="item in related" class="mt-13" :title="item.title"
+                  :size="130 * uiScale"
+                  :items="item.Metadata"></item-row>
+        <h3 class="sub-header mt-13">Similar movies</h3>
+        <v-chip-group show-arrows>
+            <v-chip v-for="item in movie.Similar" :key="item.id">{{ item.tag }}</v-chip>
+        </v-chip-group>
+    </glow-column-page>
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
@@ -35,10 +32,11 @@ import Utils from "@/js/Utils";
 import DataDetails from "@/components/DataDetails";
 import DataHeader from "@/components/DataHeader";
 import DataPlay from "@/components/DataPlay";
+import GlowColumnPage from "@/components/GlowColumnPage";
 
 export default {
     name: "Show",
-    components: {DataPlay, DataHeader, DataDetails, ItemRow, PlexImage, MediaItem},
+    components: {GlowColumnPage, DataPlay, DataHeader, DataDetails, ItemRow, PlexImage, MediaItem},
     data: () => ({}),
     async mounted() {
         await this.$store.restored;
@@ -66,6 +64,9 @@ export default {
         related() {
             return this.$store.state.plex.content['metadataRelated' + this.key];
         },
+        ...mapState({
+            uiScale: state => state.uiScale,
+        }),
     },
     watch: {
         key() {
@@ -76,23 +77,6 @@ export default {
 </script>
 
 <style scoped>
-.show {
-    max-width: 1300px;
-    width: calc(100% - 20px);
-    padding: 30px 10px;
-    margin: 0 auto;
-    display: flex;
-}
-
-.left-column {
-    position: fixed;
-}
-
-.right-column {
-    width: calc(100% - 274px - 50px);
-    margin-left: calc(274px + 50px);
-}
-
 .show-title {
     font-weight: 400;
 }

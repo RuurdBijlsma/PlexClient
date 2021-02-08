@@ -72,7 +72,7 @@
                 </div>
             </div>
             <div class="items">
-                <media-item :sort-prop="sort" :item="item" :type="dirKey === 'folder' ? 'folder' : null" :size="160"
+                <media-item :sort-prop="sort" :item="item" :type="dirKey === 'folder' ? 'folder' : null" :size="160 * uiScale"
                             v-for="item in libraryItems" :key="item.guid" class="item"/>
             </div>
         </div>
@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 import PlexImage from "@/components/PlexImage";
 import MediaItem from "@/components/MediaItem";
 
@@ -102,7 +102,7 @@ export default {
         await this.init();
     },
     methods: {
-        async init() {
+        updateFromRoute(){
             this.filter = this.$route.query.filter?.split('~') ?? [];
             this.sort = this.$route.query.sort ?? 'titleSort';
             if (this.sort.includes(':desc')) {
@@ -112,6 +112,9 @@ export default {
                 this.descendingSort = this.$route.query.dir === 'desc';
             }
             this.dirKey = this.$route.params.directory ?? 'all';
+        },
+        async init() {
+            this.updateFromRoute();
 
             this.hasInitialized = true;
             console.log("Update", this.filter[0]);
@@ -192,6 +195,9 @@ export default {
         libraryItems() {
             return this.$store.state.plex.content['sectionLibrary' + this.sectionKey + '|' + this.dirKey + '|' + this.sortQuery + JSON.stringify(this.filter)] ?? [];
         },
+        ...mapState({
+            uiScale: state => state.uiScale,
+        }),
     },
     watch: {
         sectionKey() {
@@ -218,6 +224,8 @@ export default {
             this.updateDirectory();
         },
         '$route'() {
+            this.updateFromRoute();
+            this.updateDirectory();
         },
     },
 }

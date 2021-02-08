@@ -1,7 +1,7 @@
 <template>
     <div class="results-page" v-if="restored">
         <h2>Search results for “{{ query }}”</h2>
-        <item-row :size="result.type === 'episode' ? 250 : 150"
+        <item-row :size="(result.type === 'episode' ? 250 : 150) * uiScale"
                   :title="result.title"
                   show-context
                   class="mb-10"
@@ -55,6 +55,7 @@ export default {
         },
         ...mapState({
             staticResults: state => state.search.staticResults,
+            uiScale: state => state.uiScale,
         }),
     },
     watch: {
