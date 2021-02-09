@@ -6,9 +6,9 @@
             <router-link no-style class="show-title" :to="`/playlist/${playlist.ratingKey}`">
                 <h2>{{ playlist.title }}</h2>
             </router-link>
-            <data-header :metadata="playlist"/>
-            <data-play class="mt-3" :metadata="playlist"/>
-            <data-details class="mt-4" :metadata="playlist"/>
+            <data-header :item="playlist"/>
+            <data-play class="mt-3" :item="playlist"/>
+            <data-details class="mt-4" :item="playlist"/>
 
             <blur-card>
                 <v-list color="transparent" class="seasons">

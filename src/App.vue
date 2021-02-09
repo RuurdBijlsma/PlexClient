@@ -32,13 +32,12 @@ import Utils from "@/js/Utils";
 
 // TODO
 
-// Add slider for ui scale
-// make mark as watched functionality
-// remove play icon from places it doesn't belong
-// some components could be merged (show & movie)
+// steel are you sure dialog from moviemaker for deleting items
+// change metadata var name to item
 // make item menu
-// make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Add not found image to mediaItem (different per type)
+// some components could be merged (show & movie)
+// make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
 // implement rearranging playlist order
 
@@ -62,6 +61,9 @@ import Utils from "@/js/Utils";
 
 
 // ----------------------------------------- DONE -----------------------------------------------
+// remove play icon from places it doesn't belong
+// make mark as watched functionality
+// Add slider for ui scale
 // Resizable scale for views such as library and explore
 // show recent searches when clicking search bar and its empty
 // make way to access playlists (library/movies probably somewhere)

@@ -1,26 +1,26 @@
 <template>
-    <div class="main-deck mt-3" v-if="metadata" :style="{
+    <div class="main-deck mt-3" v-if="item" :style="{
                 '--imgHeight': Math.round(imgHeight) + 'px',
                 backdropFilter: `blur(40px) brightness(${$vuetify.theme.dark ? '150' : '110'}%) saturate(150%)`,
             }">
         <div class="main-info">
-            <div v-if="metadata.type === 'episode'">
-                <router-link class="ellipsis" :to="`/show/${metadata.grandparentRatingKey}`" no-style>
-                    <h2>{{ metadata.grandparentTitle }}</h2>
+            <div v-if="item.type === 'episode'">
+                <router-link class="ellipsis" :to="`/show/${item.grandparentRatingKey}`" no-style>
+                    <h2>{{ item.grandparentTitle }}</h2>
                 </router-link>
-                <router-link class="ellipsis" to="/" no-style>{{ metadata.title }}</router-link>
+                <router-link class="ellipsis" to="/" no-style>{{ item.title }}</router-link>
                 <div>
-                    <episode-link :metadata="metadata"/>
+                    <episode-link :item="item"/>
                 </div>
             </div>
-            <router-link v-else class="ellipsis" :to="`/movie/${metadata.ratingKey}`" no-style>
-                <h2>{{ metadata.title }}</h2>
+            <router-link v-else class="ellipsis" :to="`/movie/${item.ratingKey}`" no-style>
+                <h2>{{ item.title }}</h2>
             </router-link>
-            <data-header class="main-header" hide-ratings :metadata="metadata"/>
+            <data-header class="main-header" hide-ratings :item="item"/>
             <p class="main-summary" :style="{
-                        height: `calc(var(--imgHeight) - ${metadata.type === 'episode' ? 228 : 188}px)`,
+                        height: `calc(var(--imgHeight) - ${item.type === 'episode' ? 228 : 188}px)`,
                     }">
-                {{ metadata.summary }}
+                {{ item.summary }}
             </p>
             <v-btn elevation="0" fab color="primary" small>
                 <v-icon>mdi-play</v-icon>
@@ -42,7 +42,7 @@ export default {
     name: "DataCard",
     components: {EpisodeLink, DataHeader, ItemRow, MediaItem, PlexImage},
     props: {
-        metadata: {
+        item: {
             type: Object,
             default: null,
         },
@@ -56,7 +56,7 @@ export default {
             return this.imgWidth / 16 * 9
         },
         mainThumb() {
-            return (this.metadata?.type === 'movie' ? this.metadata?.art : this.metadata?.thumb);
+            return (this.item?.type === 'movie' ? this.item?.art : this.item?.thumb);
         },
     },
 }

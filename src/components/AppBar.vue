@@ -45,7 +45,7 @@
             </div>
             <div class="header-right">
                 <search-field class="no-drag mr-2"/>
-                <v-menu offset-y :close-on-content-click="true">
+                <v-menu offset-y :close-on-content-click="false">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn
                             color="primary"
@@ -80,10 +80,30 @@
 
                         <v-list-item color="primary" class="center-list-item">
                             <v-list-item-icon>
+                                <v-icon>mdi-relative-scale</v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    <span>UI Scale</span>
+                                </v-list-item-title>
+                            </v-list-item-content>
+                            <v-list-item-action>
+                                <v-slider hide-details
+                                          class="ui-slider"
+                                          :min="0.5"
+                                          :max="2"
+                                          :step="0.1"
+                                          dense
+                                          v-model="$store.state.uiScale"></v-slider>
+                            </v-list-item-action>
+                        </v-list-item>
+
+                        <v-list-item color="primary" class="center-list-item">
+                            <v-list-item-icon>
                                 <v-icon>mdi-brightness-6</v-icon>
                             </v-list-item-icon>
                             <v-list-item-content>
-                                <v-list-item-title class="theme-switch">
+                                <v-list-item-title>
                                     <span>Dark theme</span>
                                 </v-list-item-title>
                             </v-list-item-content>
@@ -192,5 +212,9 @@ export default {
 
 .center-list-item {
     height: 40px;
+}
+
+.ui-slider {
+    width: 70px;
 }
 </style>

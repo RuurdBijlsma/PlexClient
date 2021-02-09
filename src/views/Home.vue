@@ -2,7 +2,7 @@
     <v-lazy>
         <div class="home" v-if="onDeck">
             <div class="on-deck">
-                <data-card class="main-card" :img-width="imgWidth" :metadata="mainDeck"></data-card>
+                <data-card class="main-card" :img-width="imgWidth" :item="mainDeck"></data-card>
                 <item-row title="On deck" class="sub-deck mt-10" vertical-episode show-context :size="150 * uiScale"
                           :items="subDeck"/>
             </div>

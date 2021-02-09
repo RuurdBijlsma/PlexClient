@@ -13,9 +13,9 @@
                 {{ episode.title }}
             </router-link>
         </p>
-        <data-header :metadata="episode"/>
-        <data-play class="mt-3" :metadata="episode"/>
-        <data-details :metadata="episode"/>
+        <data-header :item="episode"/>
+        <data-play class="mt-3" :item="episode"/>
+        <data-details :item="episode"/>
     </glow-column-page>
 </template>
 

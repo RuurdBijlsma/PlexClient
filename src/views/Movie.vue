@@ -6,9 +6,9 @@
         <router-link no-style :to="`/movie/${movie.ratingKey}`" class="show-title">
             <h2>{{ movie.title }}</h2>
         </router-link>
-        <data-header :metadata="movie"/>
-        <data-play class="mt-3" :metadata="movie"/>
-        <data-details :metadata="movie"/>
+        <data-header :item="movie"/>
+        <data-play class="mt-3" :item="movie"/>
+        <data-details :item="movie"/>
         <item-row class="mt-13" title="Cast" :items="movie.Role"
                   :size="130 * uiScale"
                   :section-key="movie.librarySectionID"

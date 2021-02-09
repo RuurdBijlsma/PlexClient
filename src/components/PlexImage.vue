@@ -83,14 +83,14 @@ export default {
             return Math.round(this.thumbWidth / this.aspectRatio);
         },
         imgUrl() {
-            return this.transcodeUrl({
+            return this.src === '' ? 'notfound.png' : this.transcodeUrl({
                 url: this.src,
                 width: Math.round(this.thumbWidth),
                 height: Math.round(this.thumbHeight),
             });
         },
         placeholderImg() {
-            return this.transcodeUrl({
+            return this.src === '' ? 'notfound.png' : this.transcodeUrl({
                 url: this.src,
                 width: Math.round(this.thumbWidth * .05),
                 height: Math.round(this.thumbHeight * .05),

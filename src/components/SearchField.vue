@@ -65,7 +65,6 @@ export default {
             return [document.querySelector('.search-results')];
         },
         hideResults() {
-            console.log("Hiding results");
             this.showResults = false;
         },
         getChildren(hub) {
@@ -108,9 +107,6 @@ export default {
         })
     },
     watch: {
-        showResults() {
-            console.log("show results change", this.showResults);
-        },
         '$route'() {
             this.showResults = false;
             this.clearQuery();

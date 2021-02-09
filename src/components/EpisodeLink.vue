@@ -1,10 +1,10 @@
 <template>
-<span v-if="metadata">
-    <router-link :title="metadata.parentTitle" :to="`/season/${metadata.parentRatingKey}`"
-                 no-style>S{{ metadata.parentIndex }}</router-link>
+<span v-if="item">
+    <router-link :title="item.parentTitle" :to="`/season/${item.parentRatingKey}`"
+                 no-style>S{{ item.parentIndex }}</router-link>
     <span> • </span>
-    <router-link :title="metadata.title" :to="`/episode/${metadata.ratingKey}`" no-style>E{{
-            metadata.index
+    <router-link :title="item.title" :to="`/episode/${item.ratingKey}`" no-style>E{{
+            item.index
         }}</router-link>
 </span>
 </template>
@@ -13,7 +13,7 @@
 export default {
     name: "EpisodeLink",
     props: {
-        metadata: {
+        item: {
             type: Object,
             default: null,
         },

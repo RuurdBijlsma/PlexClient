@@ -67,8 +67,26 @@ export default {
             '&' + qs.stringify(({'X-Plex-Token': state.server?.accessToken})),
         transcodeUrl: (state, getters) => ({url, width, height, upscale = true}) =>
             getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url, upscale: +upscale})),
+        itemWatched: () => item => item.type === 'show' || item.type === 'season' ?
+            item.leafCount === item.viewedLeafCount :
+            item.type === 'episode' || item.type === 'movie' ?
+                item.viewCount > 0 :
+                false
     },
     actions: {
+        async toggleWatched({dispatch, getters, state}, item) {
+            const watched = getters.itemWatched(item);
+            if (watched)
+                await dispatch('markUnwatched', item.ratingKey);
+            else
+                await dispatch('markWatched', item.ratingKey);
+
+            await dispatch('updateMetadata', item.ratingKey);
+            if (['movie', 'episode'].includes(item.type))
+                item.viewCount = state.content['metadata' + item.ratingKey].viewCount;
+            else
+                item.viewedLeafCount = state.content['metadata' + item.ratingKey].viewedLeafCount;
+        },
         async updatePublicIp({commit}) {
             let ip = await publicIp.v4();
             commit('publicIp', ip);
@@ -76,6 +94,18 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
+        async deleteItem({getters}, key) {
+            return await getters.plexApi.deleteQuery(`/library/metadata/${key}`);
+        },
+        async deletePlaylist({getters}, key) {
+            return await getters.plexApi.deleteQuery(`/playlist/${key}`);
+        },
+        async markUnwatched({getters}, key) {
+            return await getters.plexApi.query(`/:/unscrobble?key=${key}&identifier=com.plexapp.plugins.library`);
+        },
+        async markWatched({getters}, key) {
+            return await getters.plexApi.query(`/:/scrobble?key=${key}&identifier=com.plexapp.plugins.library`);
+        },
         async updatePlaylist({dispatch, commit}, key) {
             let content = await dispatch('query', {url: `/playlists/${key}`});
             commit('content', {key: 'playlist' + key, content: content.Metadata[0]});

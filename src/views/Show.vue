@@ -8,9 +8,9 @@
                 <router-link no-style class="show-title" :to="`/show/${show.ratingKey}`">
                     <h2>{{ show.title }}</h2>
                 </router-link>
-                <data-header :metadata="show"/>
-                <data-play class="mt-3" :metadata="show"/>
-                <data-details class="mt-4" :metadata="show"/>
+                <data-header :item="show"/>
+                <data-play class="mt-3" :item="show"/>
+                <data-details class="mt-4" :item="show"/>
                 <h3 class="sub-header mt-13">Seasons</h3>
                 <div class="seasons">
                     <media-item class="season" v-for="season in seasons"

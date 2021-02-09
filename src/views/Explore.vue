@@ -1,7 +1,7 @@
 <template>
     <div class="explore">
         <div class="on-deck" v-if="onDeck">
-            <data-card class="main-card mb-10" :img-width="imgWidth" :metadata="mainDeck"></data-card>
+            <data-card class="main-card mb-10" :img-width="imgWidth" :item="mainDeck"></data-card>
             <item-row title="On deck" class="sub-deck" horizontal-movie show-context :size="300 * uiScale"
                       :to="`/library/${sectionKey}/onDeck`"
                       :items="subDeck"/>

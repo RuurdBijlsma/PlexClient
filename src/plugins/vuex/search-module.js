@@ -2,7 +2,7 @@ export default {
     state: {
         query: '',
         results: [],
-        staticResults: {query: '', results: []},
+        staticResults: {query: '', results: [],},
         recentSearches: [],
     },
     mutations: {

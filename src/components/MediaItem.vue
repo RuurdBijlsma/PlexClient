@@ -16,12 +16,11 @@
             <router-link class="item-buttons" :to="to" :style="{
                 borderRadius: itemRounding,
             }">
-                <v-btn class="item-play" fab small color="primary">
+                <v-btn v-if="itemType !== 'actor' && itemType !== 'tag'" class="item-play" fab small color="primary">
                     <v-icon>mdi-play</v-icon>
                 </v-btn>
-                <v-btn icon dark>
-                    <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
+                <v-spacer v-else/>
+                <media-item-menu dark :item="item"/>
             </router-link>
             <div class="img-overlay">
                 <v-progress-linear class="view-progress"
@@ -29,14 +28,14 @@
                                        height: itemRounding,
                                        borderBottomLeftRadius: itemRounding,
                                        borderBottomRightRadius: itemRounding,
-                                       top: `calc(100% - ${itemRounding})`,
+                                       top: `calc(100% - ${itemRounding})`
                                    }"
                                    v-if="item.viewOffset && item.duration"
                                    :value="item.viewOffset / item.duration * 100"/>
             </div>
         </div>
         <div class="item-bottom" v-if="!hideTitle" :style="{
-            textAlign: itemType === 'actor' || itemType === 'tag' ? 'center' : 'left',
+            textAlign: itemType === 'actor' || itemType === 'tag' ? 'center' : 'left'
         }">
             <v-icon v-if="itemType === 'folder'" class="mr-2">mdi-folder</v-icon>
             <div v-if="showContext && itemType === 'episode'">
@@ -47,7 +46,7 @@
                     {{ item.title }}
                 </router-link>
                 <div class="item-grey-text">
-                    <episode-link :metadata="item"/>
+                    <episode-link :item="item"/>
                 </div>
             </div>
             <div v-else-if="showContext && itemType === 'season'">
@@ -77,10 +76,11 @@ import ta from 'time-ago'
 import Utils from "@/js/Utils";
 import {mapActions} from "vuex";
 import EpisodeLink from "@/components/EpisodeLink";
+import MediaItemMenu from "@/components/MediaItemMenu";
 
 export default {
     name: "MediaItem",
-    components: {EpisodeLink, PlexImage},
+    components: {MediaItemMenu, EpisodeLink, PlexImage},
     props: {
         item: {
             type: Object,

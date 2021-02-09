@@ -10,8 +10,8 @@
             <p>{{ season.title }}</p>
         </router-link>
         <v-divider/>
-        <data-details class="mt-2" :metadata="season"/>
-        <data-play class="mt-3" :metadata="season"/>
+        <data-details class="mt-2" :item="season"/>
+        <data-play class="mt-3" :item="season"/>
         <h3 class="sub-header" :class="{'mt-13': season.summary}">Episodes</h3>
         <div class="seasons">
             <media-item class="season" v-for="season in episodes" :item="season" :size="250 * uiScale"/>

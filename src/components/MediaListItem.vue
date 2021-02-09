@@ -29,7 +29,7 @@
                     <v-list-item-subtitle :title="item.title">{{ item.title }}</v-list-item-subtitle>
                 </router-link>
                 <v-list-item-subtitle>
-                    <episode-link class="grey-subtitle" :metadata="item"/>
+                    <episode-link class="grey-subtitle" :item="item"/>
                 </v-list-item-subtitle>
 
             </div>
