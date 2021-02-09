@@ -13,6 +13,8 @@
             <blur-card>
                 <v-list color="transparent" class="seasons">
                     <media-list-item class="season"
+                                     :playlist-items="items"
+                                     :playlist="playlist"
                                      show-duration
                                      :number="i + 1"
                                      :key="item.guid" v-for="(item, i) in items"

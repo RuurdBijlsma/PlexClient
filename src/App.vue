@@ -22,6 +22,25 @@
         <v-main>
             <router-view/>
         </v-main>
+
+        <custom-dialog/>
+        <custom-prompt/>
+
+        <v-snackbar v-for="snack in $store.state.snackbars" app v-model="snack.open" :timeout="snack.timeout"
+                    color="secondary">
+            {{ snack.text }}
+
+            <template v-slot:action="{ attrs }">
+                <v-btn v-if="snack.to" :to="snack.to" text v-bind="attrs"
+                       :color="$vuetify.theme.dark ? 'default' : 'primary'">
+                    {{ snack.linkText }}
+                </v-btn>
+                <v-btn text v-bind="attrs" :color="$vuetify.theme.dark ? 'default' : 'primary'"
+                       @click="snack.open = false">
+                    Dismiss
+                </v-btn>
+            </template>
+        </v-snackbar>
     </v-app>
 </template>
 
@@ -29,21 +48,20 @@
 import AppBar from "@/components/AppBar";
 import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
+import CustomDialog from "@/components/CustomDialog";
+import CustomPrompt from "@/components/CustomPrompt";
 
 // TODO
+// weird timeline flicker when moving mouse across continue watching item
 
-// steel are you sure dialog from moviemaker for deleting items
-// change metadata var name to item
-// make item menu
 // Add not found image to mediaItem (different per type)
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
-// implement rearranging playlist order
 
 // Find way around cors for offline images
 // Windows media controls integration
-// If show is in library of similar shows, show this visually and allow click on that show to go there
+// If show of 'similar shows' is in library, show this visually and allow click on that show to go there
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
 // Fix close button
@@ -55,12 +73,15 @@ import Utils from "@/js/Utils";
 // Add Sonarr domain input for similar shows linking
 // Keyboard shortcuts
 // Auto updater in release build
-// Playlists 'n stuff
 // Plex subtitles, how do they work
 // Add download show/movie for offline functionality
 
-
 // ----------------------------------------- DONE -----------------------------------------------
+// Playlists 'n stuff
+// implement rearranging playlist order
+// make item menu
+// change metadata var name to item
+// steel are you sure dialog from moviemaker for deleting items
 // remove play icon from places it doesn't belong
 // make mark as watched functionality
 // Add slider for ui scale
@@ -95,7 +116,7 @@ import Utils from "@/js/Utils";
 
 export default {
     name: 'App',
-    components: {AppBar},
+    components: {CustomPrompt, CustomDialog, AppBar},
     data: () => ({
         bgTransition: '0s',
         bgImg: {
@@ -130,8 +151,10 @@ export default {
         this.$store.restored.then(() => {
             if (this.$route.path !== '/settings' && this.server === null)
                 this.$router.push('/settings');
-            if (this.canQuery)
+            if (this.canQuery) {
                 this.updateSections();
+                this.updatePlaylists()
+            }
         });
     },
     methods: {
@@ -157,7 +180,7 @@ export default {
             if (e.key === 'r' && e.ctrlKey)
                 location.reload();
         },
-        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections']),
+        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections', 'updatePlaylists']),
     },
     computed: {
         ...mapGetters(['themeColors']),

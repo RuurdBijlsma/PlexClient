@@ -21,20 +21,14 @@ export default {
     },
     methods: {
         async init() {
-            if (!this.movieSection)
-                await this.updateSections();
-            console.log('section', this.movieSection);
-            this.updatePlaylists(this.movieSection).then();
+            this.updatePlaylists().then();
             console.log(this.playlists);
         },
         ...mapActions(['updatePlaylists', 'updateSections']),
     },
     computed: {
         playlists() {
-            return this.$store.state.plex.content?.['playlists' + this.movieSection];
-        },
-        movieSection() {
-            return this.$store.state.plex.content.sections?.find(s => s?.type === 'movie')?.key;
+            return this.$store.state.plex.content?.['playlists'];
         },
         ...mapState({
             uiScale: state => state.uiScale,

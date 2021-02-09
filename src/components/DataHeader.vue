@@ -11,12 +11,12 @@
                     class="ml-3 mr-5" small>{{ item.contentRating }}
             </v-chip>
             <div class="movie-sub-header" v-if="item.rating && !hideRatings">
-                <span class="ml-3 mr-5">{{ item.rating * 10 }}% </span>
-                <div class="tomato"></div>
+                <span class="ml-3 mr-1">{{ item.rating * 10 }}% </span>
+                <div class="tomato mr-5"></div>
             </div>
             <div class="movie-sub-header" v-if="item.audienceRating && !hideRatings">
-                <span class="mr-3">{{ item.audienceRating * 10 }}% </span>
-                <div class="popcorn"></div>
+                <span class="mr-1">{{ item.audienceRating * 10 }}% </span>
+                <div class="popcorn mr-5"></div>
             </div>
         </div>
         <v-divider class="mt-2 mb-2"></v-divider>

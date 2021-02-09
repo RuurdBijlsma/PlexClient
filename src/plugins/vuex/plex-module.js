@@ -5,6 +5,7 @@ import Vue from 'vue';
 
 export default {
     state: {
+        deletedKeys: {},
         content: {
             library: null,
             sections: null,
@@ -26,6 +27,8 @@ export default {
         auth: null,
     },
     mutations: {
+        addDeletedKey: (state, key) => Vue.set(state.deletedKeys, key, true),
+        clearDeletedKeys: state => state.deletedKeys = {},
         resetContent: state => state.content = {
             library: null,
             sections: null,
@@ -74,6 +77,14 @@ export default {
                 false
     },
     actions: {
+        async deleteItem({commit, dispatch}, item) {
+            commit('addDeletedKey', item.ratingKey);
+            if (item.type === 'playlist') {
+                await dispatch('deletePlaylist', item.ratingKey);
+            } else {
+                await dispatch('deleteMetadata', item.ratingKey);
+            }
+        },
         async toggleWatched({dispatch, getters, state}, item) {
             const watched = getters.itemWatched(item);
             if (watched)
@@ -94,11 +105,40 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
-        async deleteItem({getters}, key) {
+        async movePlaylistItem({dispatch, getters}, {playlistKey, playlistItemID, afterItemId}) {
+            let query = qs.stringify({
+                after: afterItemId,
+            });
+            return await getters.plexApi.putQuery(`/playlists/${playlistKey}/items/${playlistItemID}/move?${query}`);
+        },
+        async removeFromPlaylist({dispatch, getters}, {playlistKey, playlistItemID}) {
+            return await getters.plexApi.deleteQuery(`/playlists/${playlistKey}/items/${playlistItemID}`);
+        },
+        async addToPlaylist({state, getters}, {key, playlistKey}) {
+            let query = qs.stringify({
+                type: `video`,
+                uri: `server://${state.server.clientIdentifier}/com.plexapp.plugins.library/library/metadata/${key}`,
+                smart: 0,
+            });
+            return await getters.plexApi.putQuery(`/playlists/${playlistKey}/items?` + query);
+        },
+        async createPlaylist({state, getters, commit}, {title, key}) {
+            let query = qs.stringify({
+                type: `video`,
+                title,
+                uri: `server://${state.server.clientIdentifier}/com.plexapp.plugins.library/library/metadata/${key}`,
+                smart: 0,
+            });
+            let {MediaContainer} = await getters.plexApi.postQuery(`/playlists?` + query);
+            console.log("create playlist returned", MediaContainer);
+            commit('content', {key: 'playlist' + key, content: MediaContainer.Metadata[0]});
+            return MediaContainer.Metadata[0];
+        },
+        async deleteMetadata({getters, dispatch}, key) {
             return await getters.plexApi.deleteQuery(`/library/metadata/${key}`);
         },
         async deletePlaylist({getters}, key) {
-            return await getters.plexApi.deleteQuery(`/playlist/${key}`);
+            return await getters.plexApi.deleteQuery(`/playlists/${key}`);
         },
         async markUnwatched({getters}, key) {
             return await getters.plexApi.query(`/:/unscrobble?key=${key}&identifier=com.plexapp.plugins.library`);
@@ -116,9 +156,9 @@ export default {
             commit('content', {key: 'playlistItems' + key, content: content.Metadata});
             return content.Metadata;
         },
-        async updatePlaylists({dispatch, commit}, sectionID) {
-            let content = await dispatch('query', {url: `/playlists/?sectionID=${sectionID}`});
-            commit('content', {key: 'playlists' + sectionID, content: content.Metadata});
+        async updatePlaylists({dispatch, commit}) {
+            let content = await dispatch('query', {url: `/playlists`});
+            commit('content', {key: 'playlists', content: content.Metadata});
             return content.Metadata;
         },
         async searchPlex({dispatch, commit}, {query, sectionId}) {

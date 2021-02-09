@@ -1,5 +1,5 @@
 <template>
-    <div v-if="item" class="media-item" :style="{
+    <div v-if="item && !deletedKeys[item.ratingKey]" class="media-item" :style="{
         '--width': width + 'px',
         '--height': height + 'px',
         '--imgHeight': imgHeight + 'px',
@@ -74,7 +74,7 @@
 import PlexImage from "@/components/PlexImage";
 import ta from 'time-ago'
 import Utils from "@/js/Utils";
-import {mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
 
@@ -214,6 +214,9 @@ export default {
                 tag: 1,
             }[this.itemType] ?? 16 / 9;
         },
+        ...mapState({
+            deletedKeys: state => state.plex.deletedKeys,
+        }),
     }
 }
 </script>

@@ -1,7 +1,20 @@
 <template>
-    <v-list-item>
-        <div class="ml-4 mr-8 item-number" v-if="!isNaN(number)">
-            {{ number }}
+    <v-list-item v-if="item && !deletedKeys[item.ratingKey]">
+        <div v-if="!isNaN(number) || playlist !== null" class="before-square">
+            <div class="item-number" v-if="!isNaN(number)">
+                <span>{{ number }}</span>
+            </div>
+            <div class="arrange-buttons" v-if="playlist !== null">
+                <v-btn @click="move(-1)" small icon
+                       v-if="playlistItems.indexOf(item) !== 0">
+                    <v-icon>mdi-chevron-up</v-icon>
+                </v-btn>
+                <v-spacer v-else></v-spacer>
+                <v-btn @click="move(1)" small icon
+                       v-if="playlistItems.indexOf(item) !== playlistItems.length - 1">
+                    <v-icon>mdi-chevron-down</v-icon>
+                </v-btn>
+            </div>
         </div>
         <div class="item-img mr-4" :style="{
             '--imgWidth': imgWidth + 'px',
@@ -48,9 +61,11 @@
                 </router-link>
             </div>
         </v-list-item-content>
-        <div class="item-duration" v-if="showDuration">
+        <div class="item-duration ml-3" v-if="showDuration">
             {{ duration }}
         </div>
+        <div class="ml-3"></div>
+        <media-item-menu :playlist="playlist" plain small :item="item"/>
     </v-list-item>
 </template>
 
@@ -58,10 +73,12 @@
 import PlexImage from "@/components/PlexImage";
 import EpisodeLink from "@/components/EpisodeLink";
 import Utils from "@/js/Utils";
+import MediaItemMenu from "@/components/MediaItemMenu";
+import {mapActions, mapState} from "vuex";
 
 export default {
     name: "MediaListItem",
-    components: {EpisodeLink, PlexImage},
+    components: {MediaItemMenu, EpisodeLink, PlexImage},
     props: {
         item: {
             type: Object,
@@ -89,8 +106,35 @@ export default {
         },
         showDuration: {
             type: Boolean,
-            default:false,
-        }
+            default: false,
+        },
+        playlist: {
+            type: Object,
+            default: null,
+        },
+        playlistItems: {
+            type: Array,
+            default: () => [],
+        },
+    },
+    methods: {
+        move(n) {
+            let currentIndex = this.playlistItems.indexOf(this.item);
+            let newIndex = currentIndex + n;
+            if (newIndex < 0 || newIndex >= this.playlistItems.length)
+                return;
+            let afterItemId = undefined;
+
+            afterItemId = this.playlistItems[currentIndex - 1 + n]?.playlistItemID;
+            this.movePlaylistItem({
+                playlistKey: this.playlist.ratingKey,
+                playlistItemID: this.item.playlistItemID,
+                afterItemId,
+            });
+            this.playlistItems.splice(currentIndex, 1);
+            this.playlistItems.splice(n > 0 ? newIndex : newIndex, 0, this.item);
+        },
+        ...mapActions(['movePlaylistItem']),
     },
     computed: {
         duration() {
@@ -138,14 +182,50 @@ export default {
                 playlist: 45,
             }[this.itemType] ?? 60;
         },
+        ...mapState({
+            deletedKeys: state => state.plex.deletedKeys,
+        }),
     }
 }
 </script>
 
 <style scoped>
+.before-square {
+    position: relative;
+    width: 50px;
+    margin-right: 10px;
+    height: 60px;
+    /*background-color: pink !important;*/
+}
+
+.before-square > * {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    text-align: center;
+}
+
+.arrange-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.arrange-buttons:hover {
+    opacity: 1;
+}
+
 .item-number {
     opacity: 0.7;
     font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .item-img {

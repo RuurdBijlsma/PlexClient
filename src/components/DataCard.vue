@@ -8,7 +8,7 @@
                 <router-link class="ellipsis" :to="`/show/${item.grandparentRatingKey}`" no-style>
                     <h2>{{ item.grandparentTitle }}</h2>
                 </router-link>
-                <router-link class="ellipsis" to="/" no-style>{{ item.title }}</router-link>
+                <router-link class="ellipsis" :to="`/episode/${item.ratingKey}`" no-style>{{ item.title }}</router-link>
                 <div>
                     <episode-link :item="item"/>
                 </div>
@@ -22,12 +22,15 @@
                     }">
                 {{ item.summary }}
             </p>
-            <v-btn elevation="0" fab color="primary" small>
-                <v-icon>mdi-play</v-icon>
-            </v-btn>
+            <div class="data-bottom">
+                <v-btn elevation="0" fab color="primary" small>
+                    <v-icon>mdi-play</v-icon>
+                </v-btn>
+                <media-item-menu plain :item="item"/>
+            </div>
         </div>
         <plex-image class="main-img" v-if="mainThumb" :width="imgWidth" :height="imgHeight"
-                    :src="mainThumb"></plex-image>
+                    :src="mainThumb"/>
     </div>
 </template>
 
@@ -37,10 +40,11 @@ import MediaItem from "@/components/MediaItem";
 import ItemRow from "@/components/ItemRow";
 import DataHeader from "@/components/DataHeader";
 import EpisodeLink from "@/components/EpisodeLink";
+import MediaItemMenu from "@/components/MediaItemMenu";
 
 export default {
     name: "DataCard",
-    components: {EpisodeLink, DataHeader, ItemRow, MediaItem, PlexImage},
+    components: {MediaItemMenu, EpisodeLink, DataHeader, ItemRow, MediaItem, PlexImage},
     props: {
         item: {
             type: Object,
@@ -105,5 +109,11 @@ export default {
     width: 90%;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.data-bottom {
+    display: flex;
+    justify-content: space-between;
+    width: calc(100% - 30px);
 }
 </style>
