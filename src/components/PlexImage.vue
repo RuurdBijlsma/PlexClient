@@ -83,14 +83,14 @@ export default {
             return Math.round(this.thumbWidth / this.aspectRatio);
         },
         imgUrl() {
-            return this.src === '' ? 'notfound.png' : this.transcodeUrl({
+            return this.src === '' ? 'notfound.png' : this.transcodeImage({
                 url: this.src,
                 width: Math.round(this.thumbWidth),
                 height: Math.round(this.thumbHeight),
             });
         },
         placeholderImg() {
-            return this.src === '' ? 'notfound.png' : this.transcodeUrl({
+            return this.src === '' ? 'notfound.png' : this.transcodeImage({
                 url: this.src,
                 width: Math.round(this.thumbWidth * .05),
                 height: Math.round(this.thumbHeight * .05),
@@ -99,7 +99,7 @@ export default {
         aspectRatio() {
             return this.width / this.height;
         },
-        ...mapGetters(['transcodeUrl', 'plexUrl']),
+        ...mapGetters(['transcodeImage', 'plexUrl']),
     },
     watch: {
         imgUrl() {

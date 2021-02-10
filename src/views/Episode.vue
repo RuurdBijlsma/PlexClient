@@ -16,6 +16,7 @@
         <data-header :item="episode"/>
         <data-play class="mt-3" :item="episode"/>
         <data-details :item="episode"/>
+        <plex-player :item="episode"/>
     </glow-column-page>
 </template>
 
@@ -28,10 +29,11 @@ import DataHeader from "@/components/DataHeader";
 import DataDetails from "@/components/DataDetails";
 import DataPlay from "@/components/DataPlay";
 import GlowColumnPage from "@/components/GlowColumnPage";
+import PlexPlayer from "@/components/PlexPlayer";
 
 export default {
     name: "Episode",
-    components: {GlowColumnPage, DataPlay, DataDetails, DataHeader, ItemRow, MediaItem},
+    components: {PlexPlayer, GlowColumnPage, DataPlay, DataDetails, DataHeader, ItemRow, MediaItem},
     data: () => ({}),
     async mounted() {
         await this.$store.restored;

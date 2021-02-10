@@ -59,6 +59,7 @@ import CustomPrompt from "@/components/CustomPrompt";
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
 
+// Plex has external subtitles, find api for that
 // Find way around cors for offline images
 // Windows media controls integration
 // If show of 'similar shows' is in library, show this visually and allow click on that show to go there

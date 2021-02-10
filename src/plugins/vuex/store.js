@@ -5,8 +5,9 @@ import plex from './plex-module'
 import search from './search-module'
 import VuexPersistence from 'vuex-persist'
 import localForage from 'localforage'
+import Utils from "@/js/Utils";
 
-let isElectron = window && window.process !== undefined && window.process.type !== undefined;
+const isElectron = Utils.isElectron;
 const platform = require(isElectron ? './electron-module' : './web-module').default;
 console.log("is electron?", isElectron);
 

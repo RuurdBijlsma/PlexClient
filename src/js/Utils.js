@@ -14,7 +14,12 @@ const months = [
     'November',
     'December'
 ]
+const isElectron = window && window.process !== undefined && window.process.type !== undefined;
+
 export default class Utils {
+    static get isElectron() {
+        return isElectron;
+    };
 
     static niceTime(date) {
         let hrs = date.getHours() - 1;

@@ -66,10 +66,25 @@ export default {
             console.log(api);
             return api;
         },
-        plexUrl: (state, getters) => url => getters.plexApi._generateRelativeUrl(url) +
-            '&' + qs.stringify(({'X-Plex-Token': state.server?.accessToken})),
-        transcodeUrl: (state, getters) => ({url, width, height, upscale = true}) =>
+        plexUrl: (state, getters) => url => {
+            let base = getters.plexApi._generateRelativeUrl(url);
+            base += base.includes('?') ? '&' : '?';
+            return base + qs.stringify(({'X-Plex-Token': state.server?.accessToken}))
+        },
+        transcodeImage: (state, getters) => ({url, width, height, upscale = true}) =>
             getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url, upscale: +upscale})),
+        originalVideo: (state, getters) => (partKey) =>
+            getters.plexUrl(partKey),
+        transcodeVideo: (state, getters) => (url) =>
+            getters.plexUrl('/video/:/transcode/universal/start.m3u8' + qs.stringify({
+                mediaIndex: 0,
+                offset: 0,
+                path: url,
+                directPlay: 1,
+                directStream: 1,
+                fastSeek: 1,
+                "X-Plex-Platform": "Safari",
+            })),
         itemWatched: () => item => item.type === 'show' || item.type === 'season' ?
             item.leafCount === item.viewedLeafCount :
             item.type === 'episode' || item.type === 'movie' ?
