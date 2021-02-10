@@ -89,6 +89,21 @@ export default new Vuex.Store({
         addSnackObject: (state, snack) => state.snackbars.push(snack),
         removeSnack: (state, snack) => state.snackbars.splice(state.snackbars.indexOf(snack), 1),
     },
+    getters: {
+        notFoundImg: (_, getters) => item => {
+            let type = '';
+            switch (item.type) {
+                case 'actor':
+                    type = 'person';
+                    break;
+                default:
+                    type = 'person';
+                    break;
+            }
+            return getters.notFoundImgOfType(item, type);
+        },
+        notFoundImgOfType: () => (item, type) => `img/notfound/${type}/${Math.floor(Math.random() * 18) + 1}.png`,
+    },
     actions: {
         async getCached({state, getters, commit}, {fun, key, lifeTime = 1000 * 3}) {
             if (state.promiseCache.hasOwnProperty(key) && state.promiseCache[key].date + lifeTime > new Date) {

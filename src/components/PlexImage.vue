@@ -54,7 +54,7 @@ export default {
     mounted() {
         this.transition = this.transitionDuration;
         this.setSrc();
-        this.lazySrc = this.placeholderImg;
+        // this.lazySrc = this.placeholderImg;
     },
     methods: {
         async setSrc() {
@@ -83,11 +83,11 @@ export default {
             return Math.round(this.thumbWidth / this.aspectRatio);
         },
         imgUrl() {
-            return this.src === '' ? 'notfound.png' : this.transcodeImage({
+            return this.src.startsWith('img/') ? this.src : (this.src === '' ? 'notfound.png' : this.transcodeImage({
                 url: this.src,
                 width: Math.round(this.thumbWidth),
                 height: Math.round(this.thumbHeight),
-            });
+            }));
         },
         placeholderImg() {
             return this.src === '' ? 'notfound.png' : this.transcodeImage({

@@ -60,7 +60,6 @@ export default {
             }
         },
         usePlayer() {
-            return 'video';
             if (this.mustTranscode) {
                 return 'hls';
             } else if (this.platformType === 'web') {

@@ -12,7 +12,7 @@
                         :rounding="itemRounding"
                         v-else
                         :width="imgWidth" :height="imgHeight"
-                        :src="itemThumb"></plex-image>
+                        :src="itemThumb"/>
             <router-link class="item-buttons" :to="to" :style="{
                 borderRadius: itemRounding,
             }">
@@ -74,7 +74,7 @@
 import PlexImage from "@/components/PlexImage";
 import ta from 'time-ago'
 import Utils from "@/js/Utils";
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
 
@@ -175,15 +175,19 @@ export default {
             }[this.itemType] ?? '0.4vw';
         },
         itemThumb() {
+            let thumb;
             if (this.verticalEpisode && this.itemType === 'episode') {
-                return this.item.grandparentThumb;
+                thumb = this.item.grandparentThumb;
             } else if (this.horizontalMovie && this.itemType === 'movie') {
-                return this.item.art;
+                thumb = this.item.art;
             } else if (this.itemType === 'playlist') {
-                return this.item.composite;
+                thumb = this.item.composite;
             } else {
-                return this.item.thumb;
+                thumb = this.item.thumb;
             }
+            if (thumb === '' || thumb === undefined)
+                thumb = this.notFoundImg(this.item, 'person');
+            return thumb;
         },
         itemType() {
             return this.type ?? this.item.type ?? 'show';
@@ -214,6 +218,7 @@ export default {
                 tag: 1,
             }[this.itemType] ?? 16 / 9;
         },
+        ...mapGetters(['notFoundImg']),
         ...mapState({
             deletedKeys: state => state.plex.deletedKeys,
         }),
