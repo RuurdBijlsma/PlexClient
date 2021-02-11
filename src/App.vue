@@ -55,6 +55,7 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
+// Add person not found image to media list item
 // weird timeline flicker when moving mouse across continue watching item
 // when a request errors don't commit the failed stuff
 
