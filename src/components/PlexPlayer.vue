@@ -3,6 +3,7 @@
         '--controlsHeight': controlsHeight + 'px',
         '--videoWidth': videoWidth + 'px',
         '--videoHeight': videoHeight + 'px',
+        '--seekProgress': Math.round(progress * 10000) / 100 + '%',
     }" class="plex-player">
         <div class="video-container">
             <vlc-video :src="src"
@@ -10,11 +11,25 @@
                        class="video"
                        ref="vlc"
                        width="auto"
+                       @loadeddata="loadedData"
+                       @timeupdate="timeUpdate"
+                       @canplay="canPlay"
+                       @playing="canPlay"
+                       @waiting="buffering"
+                       @play="playEvent"
+                       @pause="pauseEvent"
                        controls
                        enable-context-menu
                        :dark="$vuetify.theme.dark"/>
             <video controls
                    ref="hls"
+                   @loadeddata="loadedData"
+                   @timeupdate="timeUpdate"
+                   @canplay="canPlay"
+                   @playing="canPlay"
+                   @waiting="buffering"
+                   @play="playEvent"
+                   @pause="pauseEvent"
                    v-else-if="usePlayer === 'hls'"
                    class="video"/>
         </div>
@@ -43,8 +58,8 @@
             </div>
             <div class="seek-controls ml-4" @mousedown="handleMouseDown">
                 <v-sheet class="plex-seek-bg" ref="seekBg" color="softerBackground">
-                    <v-sheet class="plex-seek-progress" color="primary"></v-sheet>
-                    <v-sheet class="plex-seek-thumb" color="primary"></v-sheet>
+                    <v-sheet class="plex-seek-progress" color="primary"/>
+                    <v-sheet class="plex-seek-thumb" color="primary"/>
                 </v-sheet>
             </div>
             <div class="bottom-controls ml-4">
@@ -55,8 +70,9 @@
                     <v-btn icon small>
                         <v-icon>mdi-skip-backward</v-icon>
                     </v-btn>
-                    <v-btn icon>
-                        <v-icon>mdi-play</v-icon>
+                    <v-btn icon @click="togglePlay" :loading="loadingSrc">
+                        <v-icon v-if="playing">mdi-pause</v-icon>
+                        <v-icon v-else>mdi-play</v-icon>
                     </v-btn>
                     <v-btn icon small>
                         <v-icon>mdi-skip-forward</v-icon>
@@ -95,13 +111,21 @@ export default {
     name: "PlexPlayer",
     components: {MediaItemMenu, EpisodeLink, ...vlcComponent},
     data: () => ({
-        hlsPlayer: new Hls(),
+        hlsPlayer: new Hls({
+            progressive: true,
+            lowLatencyMode: true,
+        }),
         videoRatio: 16 / 9,
         controlsHeight: 150,
         mouseDown: false,
+        seekBounds: null,
+        loadingSrc: false,
+
+        duration: 0,
+        currentTime: 0,
         volume: 1,
         muted: false,
-        seekBounds: null,
+        playing: false,
     }),
     props: {
         item: {
@@ -115,30 +139,77 @@ export default {
     },
     async mounted() {
         await this.$store.restored;
-        if (this.platformType === 'web') {
-            this.hlsPlayer.attachMedia(this.$refs.hls);
-            this.hlsPlayer.on(Hls.Events.MEDIA_ATTACHED, () => {
-                this.initSrc();
-            });
-        }
-        this.player.addEventListener('error', () => {
-            console.log('error player');
-        });
-        this.player.addEventListener('loadeddata', () => {
-            console.log('loadeddata player');
-            this.videoRatio = this.player.videoWidth / this.player.videoHeight;
-        });
-        document.addEventListener('mousemove', this.handleMouseMove, false);
-        document.addEventListener('mouseup', this.handleMouseUp, false);
+        // this.hlsPlayer.startPosition = 0;
+
         console.log({
             item: this.item,
             src: this.src,
             usedPlayer: this.usePlayer,
             platform: this.platformType,
             player: this.player,
+            hlsPlayer: this.hlsPlayer,
         });
+
+        if (this.platformType === 'web') {
+            this.hlsPlayer.attachMedia(this.$refs.hls);
+            this.hlsPlayer.on(Hls.Events.MEDIA_ATTACHED, () => {
+                this.initSrc();
+            });
+            this.hlsPlayer.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            // try to recover network error
+                            console.log('fatal network error encountered, try to recover');
+                            this.hlsPlayer.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log('fatal media error encountered, try to recover');
+                            this.hlsPlayer.recoverMediaError();
+                            break;
+                        default:
+                            // cannot recover
+                            this.hlsPlayer.destroy();
+                            break;
+                    }
+                }
+            });
+        }
+        document.addEventListener('mousemove', this.handleMouseMove, false);
+        document.addEventListener('mouseup', this.handleMouseUp, false);
     },
     methods: {
+        togglePlay() {
+            if (this.playing) {
+                console.log("pause() player");
+                this.player.pause();
+            } else {
+                console.log("play() player");
+                this.player.play();
+            }
+        },
+        playEvent() {
+            console.log('recieved play event');
+            this.playing = true;
+        },
+        pauseEvent() {
+            console.log('recieved pause event');
+            this.playing = false;
+        },
+        canPlay() {
+            this.loadingSrc = false;
+        },
+        buffering() {
+            this.loadingSrc = true;
+        },
+        loadedData() {
+            this.duration = this.player.duration;
+            console.log('duration', this.duration);
+        },
+        timeUpdate() {
+            this.currentTime = this.player.currentTime;
+            // console.log('time', this.progress);
+        },
         handleMouseDown(e) {
             this.seekBounds = this.$refs.seekBg.$el.getBoundingClientRect();
             this.mouseDown = true;
@@ -148,8 +219,9 @@ export default {
             if (this.mouseDown) {
                 let x = e.pageX - this.seekBounds.left;
                 let progress = Math.min(1, Math.max(0, x / this.seekBounds.width));
-                console.log(progress);
-                // this.player.currentTime = this.player.duration * progress;
+                console.log("set progress", progress, this.duration);
+                this.player.currentTime = this.duration * progress;
+                this.currentTime = this.duration * progress;
             }
         },
         handleMouseUp() {
@@ -160,6 +232,7 @@ export default {
             this.muted = !this.muted;
         },
         initSrc() {
+            this.loadingSrc = true;
             if (this.usePlayer === 'hls') {
                 this.hlsPlayer.loadSource(this.src);
                 this.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
@@ -169,6 +242,9 @@ export default {
         },
     },
     computed: {
+        progress() {
+            return this.currentTime / (this.duration > 0 ? this.duration : 1);
+        },
         volumeIcon() {
             if (this.muted)
                 return 'mdi-volume-mute';
@@ -224,6 +300,7 @@ export default {
     left: calc(50% - 500px);
     border-radius: 7px;
     padding-left: calc(var(--videoWidth) + 10px);
+    transition: 0.2s;
 }
 
 .video-container {
@@ -234,14 +311,16 @@ export default {
     width: var(--videoWidth);
     border-radius: 5px;
     overflow: hidden;
-    box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.3);
+    /*box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.3);*/
+    transition: 0.2s;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
     .plex-player {
         left: 0;
         bottom: 0;
         border-radius: 0;
+        max-width: 1100px;
     }
 
     .video-container {
@@ -290,10 +369,10 @@ export default {
 }
 
 .plex-seek-progress {
-    width: 50%;
     height: 100%;
     border-bottom-left-radius: 2px;
     border-top-left-radius: 2px;
+    width: var(--seekProgress);
 }
 
 .plex-seek-thumb {
@@ -301,8 +380,8 @@ export default {
     height: 10px;
     border-radius: 50%;
     position: relative;
-    left: calc(50% - 5px);
     top: -7px;
+    left: calc(var(--seekProgress) - 5px);
 }
 
 .bottom-controls {
