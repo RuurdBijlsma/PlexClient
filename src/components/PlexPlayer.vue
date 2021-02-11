@@ -13,18 +13,20 @@
                        width="auto"
                        @loadeddata="loadedData"
                        @timeupdate="timeUpdate"
+                       @volumechange="volumeChange"
                        @canplay="canPlay"
                        @playing="canPlay"
                        @waiting="buffering"
                        @play="playEvent"
                        @pause="pauseEvent"
-                       controls
+                       hide-buffering
+                       disable-auto-hide-cursor
                        enable-context-menu
                        :dark="$vuetify.theme.dark"/>
-            <video controls
-                   ref="hls"
+            <video ref="hls"
                    @loadeddata="loadedData"
                    @timeupdate="timeUpdate"
+                   @volumechange="volumeChange"
                    @canplay="canPlay"
                    @playing="canPlay"
                    @waiting="buffering"
@@ -56,25 +58,28 @@
                               hide-details="auto" class="plex-volume-slider"></v-slider>
                 </div>
             </div>
-            <div class="seek-controls ml-4" @mousedown="handleMouseDown">
-                <v-sheet class="plex-seek-bg" ref="seekBg" color="softerBackground">
-                    <v-sheet class="plex-seek-progress" color="primary"/>
-                    <v-sheet class="plex-seek-thumb" color="primary"/>
-                </v-sheet>
+            <div class="middle-controls ml-4">
+                <span>{{ niceCurrentTime }} / {{ niceDuration }}</span>
+                <div class="seek-controls" @mousedown="handleMouseDown">
+                    <v-sheet class="plex-seek-bg" ref="seekBg" color="softerBackground">
+                        <v-sheet class="plex-seek-progress" color="primary"/>
+                        <v-sheet class="plex-seek-thumb" color="primary"/>
+                    </v-sheet>
+                </div>
             </div>
             <div class="bottom-controls ml-4">
                 <div class="left-control-buttons">
                     <v-btn icon small>
                         <v-icon>mdi-skip-previous</v-icon>
                     </v-btn>
-                    <v-btn icon small>
+                    <v-btn icon small @click="seekBy(-10)">
                         <v-icon>mdi-skip-backward</v-icon>
                     </v-btn>
                     <v-btn icon @click="togglePlay" :loading="loadingSrc">
                         <v-icon v-if="playing">mdi-pause</v-icon>
                         <v-icon v-else>mdi-play</v-icon>
                     </v-btn>
-                    <v-btn icon small>
+                    <v-btn icon small @click="seekBy(10)">
                         <v-icon>mdi-skip-forward</v-icon>
                     </v-btn>
                     <v-btn icon small>
@@ -149,6 +154,7 @@ export default {
             player: this.player,
             hlsPlayer: this.hlsPlayer,
         });
+        this.volumeChange();
 
         if (this.platformType === 'web') {
             this.hlsPlayer.attachMedia(this.$refs.hls);
@@ -188,6 +194,13 @@ export default {
                 this.player.play();
             }
         },
+        seekBy(seconds) {
+            this.seekTo(this.currentTime + seconds);
+        },
+        seekTo(seconds) {
+            this.currentTime = seconds;
+            this.player.currentTime = seconds;
+        },
         playEvent() {
             console.log('recieved play event');
             this.playing = true;
@@ -206,6 +219,9 @@ export default {
             this.duration = this.player.duration;
             console.log('duration', this.duration);
         },
+        volumeChange() {
+            this.volume = this.usePlayer === 'vlc' ? this.player.volume / 2 : this.player.volume;
+        },
         timeUpdate() {
             this.currentTime = this.player.currentTime;
             // console.log('time', this.progress);
@@ -220,8 +236,7 @@ export default {
                 let x = e.pageX - this.seekBounds.left;
                 let progress = Math.min(1, Math.max(0, x / this.seekBounds.width));
                 console.log("set progress", progress, this.duration);
-                this.player.currentTime = this.duration * progress;
-                this.currentTime = this.duration * progress;
+                this.seekTo(this.duration * progress);
             }
         },
         handleMouseUp() {
@@ -242,6 +257,12 @@ export default {
         },
     },
     computed: {
+        niceCurrentTime() {
+            return Utils.msToTime(this.currentTime * 1000, false);
+        },
+        niceDuration() {
+            return Utils.msToTime(this.duration * 1000, false);
+        },
         progress() {
             return this.currentTime / (this.duration > 0 ? this.duration : 1);
         },
@@ -280,8 +301,13 @@ export default {
         })
     },
     watch: {
-        volume() {
-
+        muted(n, o) {
+            if (n !== o) this.player.muted = this.muted;
+        },
+        volume(newV, oldV) {
+            if (newV !== oldV) {
+                this.player.volume = this.usePlayer === 'vlc' ? newV * 2 : newV;
+            }
         },
         src() {
             this.initSrc();
@@ -354,8 +380,21 @@ export default {
     width: 120px;
 }
 
+.middle-controls {
+    display: flex;
+    align-items: center;
+}
+
+.middle-controls > span {
+    width: 130px;
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0.7;
+}
+
 .seek-controls {
-    width: calc(100% - 40px);
+    width: 100%;
+    margin-right: 25px;
     height: 24px;
     cursor: pointer;
     display: flex;

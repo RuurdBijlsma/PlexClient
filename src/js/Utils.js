@@ -17,6 +17,14 @@ const months = [
 const isElectron = window && window.process !== undefined && window.process.type !== undefined;
 
 export default class Utils {
+    static msToTime(ms, keepMs = false) {
+        if (isNaN(ms))
+            return `00:00` + keepMs ? '.00' : '';
+        let hms = new Date(ms).toISOString().substr(11, keepMs ? 11 : 8).replace(/^0+/, '');
+        hms = hms.startsWith(':') ? hms.substr(1) : hms;
+        return hms.startsWith('00') ? hms.substr(1) : hms;
+    }
+
     static get isElectron() {
         return isElectron;
     };
