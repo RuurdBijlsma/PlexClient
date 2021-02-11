@@ -23,6 +23,8 @@
             <router-view/>
         </v-main>
 
+        <plex-player v-if="$store.state.plex.content['metadata11799']"
+                     :item="$store.state.plex.content['metadata11799']"/>
         <custom-dialog/>
         <custom-prompt/>
 
@@ -50,34 +52,36 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 import CustomDialog from "@/components/CustomDialog";
 import CustomPrompt from "@/components/CustomPrompt";
+import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
 // weird timeline flicker when moving mouse across continue watching item
+// when a request errors don't commit the failed stuff
 
-// Add not found image to mediaItem (different per type)
+// Implement controls while browsing with animation when switching
+// Implement video player (video for web, vlc-video for electron) (big work)
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
 
+// Plex subtitles, how do they work
 // Plex has external subtitles, find api for that
 // Find way around cors for offline images
 // Windows media controls integration
 // If show of 'similar shows' is in library, show this visually and allow click on that show to go there
+// Add Sonarr domain input for similar shows linking
 // Add setting to remove current wallpaper
 // Add setting to get new wallpaper
 // Fix close button
-// Implement video player (video for web, vlc-video for electron) (big work)
-// Implement controls while browsing with animation when switching
 // Theme color based on artwork of episode/show/movie page?
 // Switch to bottom bar navigation for small screen
 // Implement server settings in settings (maybe steal settings layout from Plex)
-// Add Sonarr domain input for similar shows linking
 // Keyboard shortcuts
 // Auto updater in release build
-// Plex subtitles, how do they work
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Add not found image to mediaItem (different per type)
 // Playlists 'n stuff
 // implement rearranging playlist order
 // make item menu
@@ -117,7 +121,7 @@ import CustomPrompt from "@/components/CustomPrompt";
 
 export default {
     name: 'App',
-    components: {CustomPrompt, CustomDialog, AppBar},
+    components: {PlexPlayer, CustomPrompt, CustomDialog, AppBar},
     data: () => ({
         bgTransition: '0s',
         bgImg: {
@@ -255,5 +259,9 @@ a[no-style]:hover {
 
 .gradient[scrolled] {
     background-position-y: 0px;
+}
+
+.v-application--wrap {
+    padding-bottom: 160px;
 }
 </style>

@@ -73,18 +73,30 @@ export default {
         },
         transcodeImage: (state, getters) => ({url, width, height, upscale = true}) =>
             getters.plexUrl('/photo/:/transcode/?' + qs.stringify({width, height, url, upscale: +upscale})),
-        originalVideo: (state, getters) => (partKey) =>
-            getters.plexUrl(partKey),
-        transcodeVideo: (state, getters) => (url) =>
-            getters.plexUrl('/video/:/transcode/universal/start.m3u8' + qs.stringify({
+        originalDash: (state, getters) => item =>
+            getters.plexUrl(`/video/:/transcode/universal/start.mpd`) + '&' + qs.stringify({
+                protocol: 'dash',
                 mediaIndex: 0,
                 offset: 0,
-                path: url,
+                path: item.key,
                 directPlay: 1,
                 directStream: 1,
                 fastSeek: 1,
-                "X-Plex-Platform": "Safari",
-            })),
+                "X-Plex-Platform": "Chrome",
+            }),
+        originalHls: (state, getters) => item =>
+            getters.plexUrl(`/video/:/transcode/universal/start.m3u8`) + '&' + qs.stringify({
+                protocol: 'hls',
+                mediaIndex: 0,
+                offset: 0,
+                path: item.key,
+                directPlay: 1,
+                directStream: 1,
+                fastSeek: 1,
+                "X-Plex-Platform": "Chrome",
+            }),
+        originalMkv: (state, getters) => (item) =>
+            getters.plexUrl(item?.Media?.[0]?.Part?.[0]?.key),
         itemWatched: () => item => item.type === 'show' || item.type === 'season' ?
             item.leafCount === item.viewedLeafCount :
             item.type === 'episode' || item.type === 'movie' ?

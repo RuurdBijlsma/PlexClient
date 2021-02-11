@@ -47,8 +47,11 @@ export default {
         onDeck() {
             return this.$store.state.plex.content.onDeck ?? [];
         },
+        largeWindow() {
+            return this.windowWidth > 1600
+        },
         imgWidth() {
-            return this.windowWidth > 1600 ? 750 : 550;
+            return this.largeWindow ? 750 : 550;
         },
         mainDeck() {
             return this.onDeck?.[0];

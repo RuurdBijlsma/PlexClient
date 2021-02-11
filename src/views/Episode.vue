@@ -16,7 +16,6 @@
         <data-header :item="episode"/>
         <data-play class="mt-3" :item="episode"/>
         <data-details :item="episode"/>
-        <plex-player :item="episode"/>
     </glow-column-page>
 </template>
 
