@@ -162,6 +162,7 @@ export default {
         icons: {},
         firstPlayLoaded: false,
         resizeInterval: -1,
+        fullscreen: false,
         // Video element properties //
         defaultPlaybackRate: 1,
         playbackRate: 1,

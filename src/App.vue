@@ -1,20 +1,20 @@
 <template>
-    <v-app class="app" :style="{
-        fontWeight: $vuetify.theme.dark ? 300 : 500,
-        '--primary': themeColors.primary,
-        '--foreground': themeColors.foreground,
-        '--softForeground':themeColors.softForeground,
-        '--hardBackground': themeColors.hardBackground,
-        '--softBackground': themeColors.softBackground,
-        '--softerBackground':themeColors.softerBackground,
-        '--secondary': themeColors.secondary,
-    }">
+    <v-app class="app" :class="{'big-screen': bigScreen}" :style="{
+            fontWeight: $vuetify.theme.dark ? 300 : 500,
+            '--primary': themeColors.primary,
+            '--foreground': themeColors.foreground,
+            '--softForeground':themeColors.softForeground,
+            '--hardBackground': themeColors.hardBackground,
+            '--softBackground': themeColors.softBackground,
+            '--softerBackground':themeColors.softerBackground,
+            '--secondary': themeColors.secondary,
+        }">
         <div>
             <div class="background" :style="{
-                backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
-                transition: `background-image ${bgTransition}`,
-                maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.7 : 0.6}) 95%)`,
-            }"/>
+                    backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
+                    transition: `background-image ${bgTransition}`,
+                    maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.7 : 0.6}) 95%)`,
+                }"/>
             <div class="blur"/>
             <div class="gradient" :scrolled="scrollY > 50"/>
         </div>
@@ -25,13 +25,13 @@
 
         <plex-player v-if="$store.state.plex.content['metadata11799']"
                      :item="$store.state.plex.content['metadata11799']"/>
+
         <custom-dialog/>
         <custom-prompt/>
 
         <v-snackbar v-for="snack in $store.state.snackbars" app v-model="snack.open" :timeout="snack.timeout"
                     color="secondary">
             {{ snack.text }}
-
             <template v-slot:action="{ attrs }">
                 <v-btn v-if="snack.to" :to="snack.to" text v-bind="attrs"
                        :color="$vuetify.theme.dark ? 'default' : 'primary'">
@@ -55,11 +55,13 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
-// Add person not found image to media list item
+// add ability to drag controls around when in fullscreen
 // weird timeline flicker when moving mouse across continue watching item
 // when a request errors don't commit the failed stuff
 
-// Implement controls while browsing with animation when switching
+// When item is watched, mark with watched with scrobble
+// Update timeline via api while item is being watched
+// Ask to resume from previous position when playing item
 // Implement video player (video for web, vlc-video for electron) (big work)
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
@@ -82,6 +84,8 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Implement controls while browsing with animation when switching
+// Add person not found image to media list item
 // Add not found image to mediaItem (different per type)
 // Playlists 'n stuff
 // implement rearranging playlist order
@@ -189,6 +193,9 @@ export default {
         ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections', 'updatePlaylists']),
     },
     computed: {
+        bigScreen() {
+            return this.$route.query.player === '1';
+        },
         ...mapGetters(['themeColors']),
         ...mapState({
             platform: state => state.platform.type,
@@ -198,6 +205,12 @@ export default {
         }),
     },
     watch: {
+        bigScreen() {
+            if (this.bigScreen)
+                document.documentElement.style.overflowY = 'hidden';
+            else
+                document.documentElement.style.overflowY = 'auto';
+        },
         '$vuetify.theme.dark'() {
             localStorage.darkTheme = this.$vuetify.theme.dark;
         },
@@ -211,14 +224,6 @@ html {
     user-select: none;
 }
 
-/*.router-link-active {*/
-/*    color: var(--foreground) !important;*/
-/*    text-decoration: none;*/
-/*}*/
-
-/*.router-link-active:hover {*/
-/*    text-decoration: underline;*/
-/*}*/
 a[no-style] {
     text-decoration: none;
     color: inherit !important;
@@ -230,6 +235,12 @@ a[no-style]:hover {
 
 .appbar {
     z-index: 11;
+    transition: transform 0.5s;
+    transform: translateY(0px);
+}
+
+.big-screen .appbar {
+    transform: translateY(-100px) !important;
 }
 
 .background, .blur, .gradient {
@@ -238,6 +249,14 @@ a[no-style]:hover {
     width: 100%;
     top: 0;
     left: 0;
+}
+
+.gradient {
+    transition: opacity 0.5s;
+}
+
+.big-screen .gradient {
+    opacity: 0;
 }
 
 .background {

@@ -186,7 +186,7 @@ export default {
                 thumb = this.item.thumb;
             }
             if (thumb === '' || thumb === undefined)
-                thumb = this.notFoundImg(this.item, 'person');
+                thumb = this.notFoundImg(this.item);
             return thumb;
         },
         itemType() {

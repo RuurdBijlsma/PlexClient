@@ -1,18 +1,18 @@
 <template>
-    <v-menu v-if="canPlay || isParent || canWatch">
+    <v-menu v-if="canPlay || isParent || canWatch" :attach="attach" :nudge-top="nudgeTop">
         <template v-slot:activator="{ on, attrs }">
             <v-btn
                 :small="small"
                 :plain="plain"
                 @click.prevent="test"
                 icon
-                :dark="dark"
+                :dark="darkButton || dark"
                 v-bind="attrs"
                 v-on="on">
                 <v-icon :small="small">mdi-dots-horizontal</v-icon>
             </v-btn>
         </template>
-        <v-list dense>
+        <v-list dense :dark="dark">
             <v-list-item v-if="canPlay" @click="togglePlay">
                 <v-list-item-icon>
                     <v-icon>mdi-play-outline</v-icon>
@@ -82,6 +82,10 @@ export default {
             type: Object,
             default: null,
         },
+        darkButton: {
+            type: Boolean,
+            default: false,
+        },
         dark: {
             type: Boolean,
             default: false,
@@ -97,6 +101,14 @@ export default {
         playlist: {
             type: Object,
             default: null,
+        },
+        attach: {
+            type: Object,
+            default: false,
+        },
+        nudgeTop: {
+            type: Number,
+            default: 0,
         },
     },
     methods: {

@@ -1,16 +1,39 @@
 <template>
-    <v-sheet elevation="4" :style="{
-        '--controlsHeight': controlsHeight + 'px',
-        '--videoWidth': videoWidth + 'px',
-        '--videoHeight': videoHeight + 'px',
-        '--seekProgress': Math.round(progress * 10000) / 100 + '%',
-    }" class="plex-player">
-        <div class="video-container">
+    <div ref="playerContainer"
+         :class="{
+             'electron': platformType === 'electron',
+             'big-screen': bigScreen,
+             'small-screen': !bigScreen,
+             'hide-controls': hideControls && bigScreen && !mouseOnControls && playing,
+         }"
+         :style="{
+            '--controlsHeight': controlsHeight + 'px',
+            '--videoWidth': videoWidth + 'px',
+            '--videoHeight': videoHeight + 'px',
+            '--seekProgress': Math.round(progress * 10000) / 100 + '%',
+        }">
+        <div v-if="bigScreen && !fullscreen" class="player-app-bar">
+            <div class="player-app-bar-content">
+                <v-btn icon dark small class="no-drag" @click="exitBigScreen">
+                    <v-icon small>mdi-chevron-down</v-icon>
+                </v-btn>
+                <template v-if="platformType === 'electron'">
+                    <v-spacer></v-spacer>
+                    <v-btn icon dark small class="no-drag">
+                        <v-icon small>mdi-minus</v-icon>
+                    </v-btn>
+                    <v-btn icon dark small class="no-drag">
+                        <v-icon small>mdi-close</v-icon>
+                    </v-btn>
+                </template>
+            </div>
+        </div>
+        <div class="video-container" @click="enterBigScreen" @dblclick="toggleFullscreen">
             <vlc-video :src="src"
                        v-if="usePlayer === 'vlc'"
                        class="video"
                        ref="vlc"
-                       width="auto"
+                       :width="bigScreen ? 0 : 'auto'"
                        @loadeddata="loadedData"
                        @timeupdate="timeUpdate"
                        @volumechange="volumeChange"
@@ -32,10 +55,16 @@
                    @waiting="buffering"
                    @play="playEvent"
                    @pause="pauseEvent"
+                   @progress="updateBuffers"
                    v-else-if="usePlayer === 'hls'"
                    class="video"/>
         </div>
-        <div class="plex-controls">
+        <v-sheet :color="bigScreen ? 'transparent' : 'default'"
+                 :dark="bigScreen"
+                 elevation="4"
+                 @mouseenter="mouseOnControls = true"
+                 @mouseleave="mouseOnControls = false"
+                 class="plex-player">
             <div class="top-controls ml-4 mt-4">
                 <div class="plex-media-info">
                     <template v-if="item.type==='episode'">
@@ -53,7 +82,10 @@
                     </template>
                 </div>
                 <div class="plex-volume mr-5">
-                    <v-slider @click:prepend="toggleMute" :max="1" :min="0" :step="0.01" v-model="volume"
+                    <v-slider @click:prepend="toggleMute"
+                              :max="1" :min="0" :step="0.01"
+                              dense
+                              v-model="volume"
                               :prepend-icon="volumeIcon"
                               hide-details="auto" class="plex-volume-slider"></v-slider>
                 </div>
@@ -61,46 +93,53 @@
             <div class="middle-controls ml-4">
                 <span>{{ niceCurrentTime }} / {{ niceDuration }}</span>
                 <div class="seek-controls" @mousedown="handleMouseDown">
-                    <v-sheet class="plex-seek-bg" ref="seekBg" color="softerBackground">
-                        <v-sheet class="plex-seek-progress" color="primary"/>
-                        <v-sheet class="plex-seek-thumb" color="primary"/>
+                    <v-sheet class="plex-seek-bg" ref="seekBg" :color="bigScreen ? '#292929' : 'softerBackground'">
+                        <v-sheet class="plex-seek-progress" :color="bigScreen ? 'white' : 'primary'"/>
+                        <v-sheet class="plex-buffer" color="#868686" v-for="buffer in buffers" :style="{
+                            left: Math.round(buffer[0] * 1000) / 10 + '%',
+                            width: Math.round((buffer[1] - buffer[0]) * 1000) / 10 + '%',
+                        }"/>
+                        <v-sheet class="plex-seek-thumb" :color="bigScreen ? 'white' : 'primary'"/>
                     </v-sheet>
                 </div>
             </div>
-            <div class="bottom-controls ml-4">
+            <div class="bottom-controls ml-4 mt-1">
                 <div class="left-control-buttons">
                     <v-btn icon small>
-                        <v-icon>mdi-skip-previous</v-icon>
+                        <v-icon small>mdi-skip-previous</v-icon>
                     </v-btn>
                     <v-btn icon small @click="seekBy(-10)">
-                        <v-icon>mdi-skip-backward</v-icon>
+                        <v-icon small>mdi-skip-backward</v-icon>
                     </v-btn>
                     <v-btn icon @click="togglePlay" :loading="loadingSrc">
                         <v-icon v-if="playing">mdi-pause</v-icon>
                         <v-icon v-else>mdi-play</v-icon>
                     </v-btn>
                     <v-btn icon small @click="seekBy(10)">
-                        <v-icon>mdi-skip-forward</v-icon>
+                        <v-icon small>mdi-skip-forward</v-icon>
                     </v-btn>
                     <v-btn icon small>
-                        <v-icon>mdi-skip-next</v-icon>
+                        <v-icon small>mdi-skip-next</v-icon>
                     </v-btn>
                 </div>
                 <div class="right-control-buttons mr-5">
                     <v-btn icon small plain>
-                        <v-icon>mdi-repeat</v-icon>
+                        <v-icon small>mdi-repeat</v-icon>
                     </v-btn>
                     <v-btn icon small plain>
-                        <v-icon>mdi-shuffle</v-icon>
+                        <v-icon small>mdi-shuffle</v-icon>
                     </v-btn>
                     <v-btn icon small plain>
-                        <v-icon>mdi-playlist-play</v-icon>
+                        <v-icon small>mdi-playlist-play</v-icon>
                     </v-btn>
-                    <media-item-menu :item="item"></media-item-menu>
+                    <media-item-menu attach=".plex-player"
+                                     :dark="bigScreen"
+                                     :item="item"
+                                     :nudge-top="140"></media-item-menu>
                 </div>
             </div>
-        </div>
-    </v-sheet>
+        </v-sheet>
+    </div>
 </template>
 
 <script>
@@ -119,13 +158,20 @@ export default {
         hlsPlayer: new Hls({
             progressive: true,
             lowLatencyMode: true,
+            maxBufferLength: 120,
+            maxBufferSize: 500,
         }),
         videoRatio: 16 / 9,
         controlsHeight: 150,
         mouseDown: false,
         seekBounds: null,
         loadingSrc: false,
+        fullscreen: false,
+        mouseOnControls: false,
+        moveTimeout: -1,
+        hideControls: false,
 
+        buffers: [],
         duration: 0,
         currentTime: 0,
         volume: 1,
@@ -142,6 +188,12 @@ export default {
             default: null,
         },
     },
+    beforeDestroy() {
+        this.hlsPlayer.destroy();
+        document.removeEventListener('mousemove', this.handleMouseMove);
+        document.removeEventListener('mouseup', this.handleMouseUp);
+        document.removeEventListener('fullscreenchange', this.changeFullscreen);
+    },
     async mounted() {
         await this.$store.restored;
         // this.hlsPlayer.startPosition = 0;
@@ -156,7 +208,7 @@ export default {
         });
         this.volumeChange();
 
-        if (this.platformType === 'web') {
+        if (this.usePlayer === 'hls') {
             this.hlsPlayer.attachMedia(this.$refs.hls);
             this.hlsPlayer.on(Hls.Events.MEDIA_ATTACHED, () => {
                 this.initSrc();
@@ -183,8 +235,37 @@ export default {
         }
         document.addEventListener('mousemove', this.handleMouseMove, false);
         document.addEventListener('mouseup', this.handleMouseUp, false);
+        document.addEventListener('fullscreenchange', this.changeFullscreen, false);
     },
     methods: {
+        toggleFullscreen() {
+            if (this.fullscreen) {
+                document.exitFullscreen();
+            } else {
+                let container = this.$refs.playerContainer;
+                container.requestFullscreen();
+            }
+        },
+        changeFullscreen() {
+            this.fullscreen = document.fullscreenElement === this.$refs.playerContainer;
+        },
+        updateBuffers() {
+            let buffers = [];
+            for (let i = 0; i < this.player.buffered.length; i++) {
+                let start = this.player.buffered.start(i);
+                let end = this.player.buffered.end(i);
+                buffers.push([start / this.duration, end / this.duration]);
+            }
+            this.buffers = buffers;
+        },
+        enterBigScreen() {
+            if (!this.bigScreen)
+                this.$router.push({query: {...this.$route.query, player: 1}});
+        },
+        exitBigScreen() {
+            if (this.bigScreen)
+                this.$router.push({query: {...this.$route.query, player: 0}});
+        },
         togglePlay() {
             if (this.playing) {
                 console.log("pause() player");
@@ -232,6 +313,13 @@ export default {
             this.handleMouseMove(e);
         },
         handleMouseMove(e) {
+            if (e.movementX > 1 || e.movementY > 1) {
+                this.hideControls = false;
+                clearTimeout(this.moveTimeout);
+                this.moveTimeout = setTimeout(() => {
+                    this.hideControls = true;
+                }, 2500);
+            }
             if (this.mouseDown) {
                 let x = e.pageX - this.seekBounds.left;
                 let progress = Math.min(1, Math.max(0, x / this.seekBounds.width));
@@ -289,18 +377,29 @@ export default {
             }
         },
         usePlayer() {
+            // return 'hls';
             if (this.platformType === 'electron') {
                 return 'vlc';
             } else {
                 return 'hls';
             }
         },
+        bigScreen() {
+            return this.$route.query.player === '1';
+        },
         ...mapGetters(['originalHls', 'originalMkv', 'originalDash']),
         ...mapState({
             platformType: state => state.platform.type,
-        })
+        }),
     },
     watch: {
+        '$route.query.player'() {
+            console.log('bigscreen change');
+            if (!this.bigScreen && this.fullscreen) {
+                console.log('exiting fullscreen');
+                document.exitFullscreen();
+            }
+        },
         muted(n, o) {
             if (n !== o) this.player.muted = this.muted;
         },
@@ -317,6 +416,39 @@ export default {
 </script>
 
 <style scoped>
+.player-app-bar {
+    position: fixed;
+    z-index: 52;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    backdrop-filter: blur(30px) saturate(80%) brightness(80%);
+    transition: opacity 0.1s;
+}
+
+.hide-controls .player-app-bar {
+    opacity: 0;
+}
+
+.electron .player-app-bar {
+    background-color: rgba(60, 60, 60, 0.2);
+}
+
+.player-app-bar-content {
+    margin: 5px;
+    height: 30px;
+    width: calc(100% - 10px);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    -webkit-app-region: drag;
+}
+
+.no-drag, .no-drag >>> * {
+    -webkit-app-region: no-drag;
+}
+
 .plex-player {
     position: fixed;
     width: 100%;
@@ -326,7 +458,24 @@ export default {
     left: calc(50% - 500px);
     border-radius: 7px;
     padding-left: calc(var(--videoWidth) + 10px);
-    transition: 0.2s;
+    transition: 0.5s, opacity 0.1s;
+    z-index: 49;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.hide-controls .plex-player {
+    opacity: 0;
+}
+
+.big-screen .plex-player {
+    backdrop-filter: blur(50px) saturate(80%) brightness(80%);
+    background-image: linear-gradient(to top, rgba(20, 20, 20, 0.4), rgba(20, 20, 20, 0.2));
+    z-index: 51;
+    padding-left: 10px;
+    max-width: 600px;
+    left: calc(50% - 300px);
 }
 
 .video-container {
@@ -338,36 +487,60 @@ export default {
     border-radius: 5px;
     overflow: hidden;
     /*box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.3);*/
-    transition: 0.2s;
+    transition: 0.5s;
+    z-index: 50;
+    background-color: transparent;
+}
+
+.small-screen .video-container {
+    cursor: pointer !important;
+}
+
+.big-screen .video-container {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    bottom: 0;
+    border-radius: 0;
+    background-color: #000000;
 }
 
 @media (max-width: 1100px) {
-    .plex-player {
+    .small-screen .plex-player {
         left: 0;
         bottom: 0;
         border-radius: 0;
         max-width: 1100px;
     }
 
-    .video-container {
+    .small-screen .video-container {
         left: 5px;
         bottom: 5px;
     }
 }
 
+@media (max-width: 700px) {
+    .big-screen .plex-player {
+        left: 0;
+        bottom: 0;
+        border-radius: 0;
+        max-width: 700px;
+    }
+}
+
 .video {
+    width: 100%;
     height: 100%;
+}
+
+.hide-controls .video {
+    cursor: none !important;
 }
 
 .top-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.plex-controls {
-    display: flex;
-    flex-direction: column;
 }
 
 .plex-media-info {
@@ -378,6 +551,7 @@ export default {
 
 .plex-volume-slider {
     width: 120px;
+    transform: scale(0.8);
 }
 
 .middle-controls {
@@ -388,7 +562,6 @@ export default {
 .middle-controls > span {
     width: 130px;
     font-size: 13px;
-    font-weight: 700;
     opacity: 0.7;
 }
 
@@ -405,6 +578,7 @@ export default {
     width: 100%;
     height: 4px;
     border-radius: 2px;
+    position: relative;
 }
 
 .plex-seek-progress {
@@ -412,6 +586,13 @@ export default {
     border-bottom-left-radius: 2px;
     border-top-left-radius: 2px;
     width: var(--seekProgress);
+}
+
+.plex-buffer {
+    position: absolute;
+    height: 4px;
+    top: 0;
+    opacity: 0.3;
 }
 
 .plex-seek-thumb {

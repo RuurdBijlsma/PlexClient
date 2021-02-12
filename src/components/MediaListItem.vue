@@ -74,7 +74,7 @@ import PlexImage from "@/components/PlexImage";
 import EpisodeLink from "@/components/EpisodeLink";
 import Utils from "@/js/Utils";
 import MediaItemMenu from "@/components/MediaItemMenu";
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 
 export default {
     name: "MediaListItem",
@@ -159,13 +159,17 @@ export default {
             }[this.itemType] ?? '0.3vw';
         },
         itemThumb() {
+            let thumb;
             if (this.itemType === 'episode') {
-                return this.item.grandparentThumb;
+                thumb = this.item.grandparentThumb;
             } else if (this.itemType === 'playlist') {
-                return this.item.composite;
+                thumb = this.item.composite;
             } else {
-                return this.item.thumb;
+                thumb = this.item.thumb;
             }
+            if (thumb === '' || thumb === undefined)
+                thumb = this.notFoundImg(this.item);
+            return thumb;
         },
         itemType() {
             return this.type ?? (this.item.type === 'tag' ? 'actor' : this.item.type) ?? 'show';
@@ -182,6 +186,7 @@ export default {
                 playlist: 45,
             }[this.itemType] ?? 60;
         },
+        ...mapGetters(['notFoundImg']),
         ...mapState({
             deletedKeys: state => state.plex.deletedKeys,
         }),
