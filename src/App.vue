@@ -59,8 +59,10 @@ import PlexPlayer from "@/components/PlexPlayer";
 // weird timeline flicker when moving mouse across continue watching item
 // when a request errors don't commit the failed stuff
 
+// scroll over volume slider to change it
+// scroll over timeline to seek forward/backward
 // When item is watched, mark with watched with scrobble
-// Update timeline via api while item is being watched
+// Update timeline via api while item is being viewed
 // Ask to resume from previous position when playing item
 // Implement video player (video for web, vlc-video for electron) (big work)
 // some components could be merged (show & movie)
@@ -84,6 +86,7 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// fix poster image
 // Implement controls while browsing with animation when switching
 // Add person not found image to media list item
 // Add not found image to mediaItem (different per type)

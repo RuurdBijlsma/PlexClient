@@ -20,6 +20,7 @@ export default {
         videoRatio: 16 / 9,
         srcLoading: false,
         playing: false,
+        controlsHeight: 150,
     },
     mutations: {
         context: (state, {item, key, queueLoading = true}) => {
@@ -50,7 +51,22 @@ export default {
         shuffle: (state, shuffle) => state.shuffle = shuffle,
         repeat: (state, repeat) => state.repeat = repeat,
     },
-    getters: {},
+    getters: {
+        videoWidth: (state, getters) => {
+            return Math.round(getters.videoHeight * state.videoRatio * 100) / 100;
+        },
+        videoHeight: (state) => {
+            return state.controlsHeight - 10;
+        },
+        usePlayer: (state, getters, rootState) => {
+            return 'hls';
+            if (rootState.platform.type === 'electron') {
+                return 'vlc';
+            } else {
+                return 'hls';
+            }
+        },
+    },
     actions: {
         async playItem({dispatch, commit, state, getters, rootState}, {item, shuffle = false}) {
             // get children / parents of item

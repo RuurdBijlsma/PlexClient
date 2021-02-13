@@ -1,5 +1,6 @@
 <template>
     <div ref="playerContainer"
+         v-if="item"
          :class="{
              'electron': platformType === 'electron',
              'big-screen': bigScreen,
@@ -22,54 +23,28 @@
                     <v-btn icon dark small class="no-drag">
                         <v-icon small>mdi-minus</v-icon>
                     </v-btn>
-                    <v-btn icon dark small class="no-drag">
+                    <v-btn icon dark small class="no-drag ml-2">
                         <v-icon small>mdi-close</v-icon>
                     </v-btn>
                 </template>
             </div>
         </div>
-        <div class="video-container" @click="enterBigScreen" @dblclick="toggleFullscreen">
-            <vlc-video :src="src"
-                       v-if="usePlayer === 'vlc'"
-                       class="video"
-                       ref="vlc"
-                       :width="bigScreen ? 0 : 'auto'"
-                       @loadeddata="loadedData"
-                       @timeupdate="timeUpdate"
-                       @volumechange="volumeChange"
-                       @canplay="canPlay"
-                       @playing="canPlay"
-                       @waiting="buffering"
-                       @play="playEvent"
-                       @pause="pauseEvent"
-                       hide-buffering
-                       disable-auto-hide-cursor
-                       enable-context-menu
-                       autoplay
-                       :poster="artUrl"
-                       :dark="$vuetify.theme.dark"/>
-            <video ref="hls"
-                   @loadeddata="loadedData"
-                   @timeupdate="timeUpdate"
-                   @volumechange="volumeChange"
-                   @canplay="canPlay"
-                   @playing="canPlay"
-                   @waiting="buffering"
-                   @play="playEvent"
-                   @pause="pauseEvent"
-                   @progress="updateBuffers"
-                   :poster="artUrl"
-                   autoplay
-                   v-else-if="usePlayer === 'hls'"
-                   class="video"/>
-        </div>
-        <v-sheet :color="bigScreen ? 'transparent' : 'default'"
-                 :dark="bigScreen"
-                 v-if="item !== null"
-                 elevation="4"
-                 @mouseenter="mouseOnControls = true"
-                 @mouseleave="mouseOnControls = false"
-                 class="plex-player">
+        <plex-video class="video-container" ref="video"
+                    @click.native="enterBigScreen"
+                    @dblclick.native="toggleFullscreen"
+                    v-if="item"
+                    :key="item.key"/>
+        <v-sheet
+            :color="bigScreen ? 'transparent' : 'default'"
+            :dark="bigScreen"
+            v-if="item !== null"
+            ref="controls"
+            elevation="4"
+            @mouseenter="mouseOnControls = true"
+            @mouseleave="mouseOnControls = false"
+            :style="controlsStyle"
+            @mousedown="handleControlDown"
+            class="plex-player">
             <div class="top-controls ml-4 mt-4">
                 <div class="plex-media-info">
                     <template v-if="item.type==='episode'">
@@ -86,7 +61,7 @@
                         </router-link>
                     </template>
                 </div>
-                <div class="plex-volume mr-5">
+                <div class="plex-volume mr-5" @mousedown.stop="test">
                     <v-slider @click:prepend="toggleMute"
                               :max="1" :min="0" :step="0.01"
                               dense
@@ -97,7 +72,7 @@
             </div>
             <div class="middle-controls ml-4">
                 <span>{{ niceCurrentTime }} / {{ niceDuration }}</span>
-                <div class="seek-controls" @mousedown="handleMouseDown">
+                <div class="seek-controls" @mousedown.stop="handleMouseDown">
                     <v-sheet class="plex-seek-bg" ref="seekBg" :color="bigScreen ? '#292929' : 'softerBackground'">
                         <v-sheet class="plex-seek-progress" :color="bigScreen ? 'white' : 'primary'"/>
                         <v-sheet class="plex-buffer" color="#868686"
@@ -151,87 +126,40 @@
 
 <script>
 import Utils from "@/js/Utils";
-import Hls from 'hls.js';
 import {mapGetters, mapState} from "vuex";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
-
-let vlcComponent = Utils.isElectron ? {VlcVideo: require('./vlc-video/VlcVideo').default} : {};
+import PlexVideo from "@/components/PlexVideo";
 
 export default {
     name: "PlexPlayer",
-    components: {MediaItemMenu, EpisodeLink, ...vlcComponent},
+    components: {PlexVideo, MediaItemMenu, EpisodeLink},
     data: () => ({
-        hlsPlayer: new Hls({
-            progressive: true,
-            lowLatencyMode: true,
-            maxBufferLength: 120,
-            maxBufferSize: 500,
-        }),
-        controlsHeight: 150,
+        dragControls: false,
         mouseDown: false,
         seekBounds: null,
+        drag: null,
         fullscreen: false,
         mouseOnControls: false,
         moveTimeout: -1,
         hideControls: false,
+        controlsOffset: {x: 0, y: 0},
     }),
     beforeDestroy() {
-        this.hlsPlayer.destroy();
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mouseup', this.handleMouseUp);
         document.removeEventListener('fullscreenchange', this.changeFullscreen);
     },
     async mounted() {
         await this.$store.restored;
-        this.player = this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
-        // this.hlsPlayer.startPosition = 0;
-        console.log("HLS SUPPORTED", Hls.isSupported())
-
-        console.log({
-            item: this.item,
-            src: this.src,
-            usedPlayer: this.usePlayer,
-            platform: this.platformType,
-            player: this.player,
-            hlsPlayer: this.hlsPlayer,
-        });
-
-        if (this.player)
-            this.volumeChange();
-
-        if (this.usePlayer === 'hls') {
-            console.log("Attaching", this.$refs.hls);
-            this.hlsPlayer.attachMedia(this.$refs.hls);
-            this.hlsPlayer.on(Hls.Events.MEDIA_ATTACHED, () => {
-                this.initSrc();
-            });
-            this.hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) {
-                    switch (data.type) {
-                        case Hls.ErrorTypes.NETWORK_ERROR:
-                            // try to recover network error
-                            console.log('fatal network error encountered, try to recover');
-                            this.hlsPlayer.startLoad();
-                            break;
-                        case Hls.ErrorTypes.MEDIA_ERROR:
-                            console.log('fatal media error encountered, try to recover');
-                            this.hlsPlayer.recoverMediaError();
-                            break;
-                        default:
-                            console.warn("hls fatal error, cannot recover")
-                            // cannot recover
-                            this.hlsPlayer.destroy();
-                            break;
-                    }
-                }
-            });
-        }
         document.addEventListener('mousemove', this.handleMouseMove, false);
         document.addEventListener('mouseup', this.handleMouseUp, false);
         document.addEventListener('fullscreenchange', this.changeFullscreen, false);
     },
     methods: {
+        test() {
+
+        },
         toggleFullscreen() {
             if (this.fullscreen) {
                 document.exitFullscreen();
@@ -243,15 +171,6 @@ export default {
         changeFullscreen() {
             this.fullscreen = document.fullscreenElement === this.$refs.playerContainer;
         },
-        updateBuffers() {
-            let buffers = [];
-            for (let i = 0; i < this.player?.buffered?.length; i++) {
-                let start = this.player?.buffered?.start(i);
-                let end = this.player?.buffered?.end(i);
-                buffers.push([start / this.duration, end / this.duration]);
-            }
-            this.$store.commit('buffers', buffers);
-        },
         enterBigScreen() {
             if (!this.bigScreen)
                 this.$router.push({query: {...this.$route.query, player: 1}});
@@ -262,48 +181,26 @@ export default {
         },
         togglePlay() {
             if (this.playing) {
-                console.log("pause() player");
-                this.player?.pause();
+                this.$store.commit('playing', false);
+                this.$refs.video.player.pause();
             } else {
-                console.log("play() player");
-                this.player?.play();
+                this.$store.commit('playing', true);
+                this.$refs.video.player.play();
             }
+        },
+        seekTo(seconds) {
+            this.$store.commit('currentTime', seconds);
+            this.$refs.video.player.currentTime = seconds;
         },
         seekBy(seconds) {
             this.seekTo(this.currentTime + seconds);
         },
-        seekTo(seconds) {
-            this.$store.commit('currentTime', seconds);
-            this.player.currentTime = seconds;
-        },
-        playEvent() {
-            this.$store.commit('playing', true);
-        },
-        pauseEvent() {
-            this.$store.commit('playing', false);
-        },
-        canPlay() {
-            this.$store.commit('srcLoading', false);
-        },
-        buffering() {
-            this.$store.commit('srcLoading', true);
-        },
-        loadedData() {
-            console.log(this.player);
-            if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
-                this.$store.commit('duration', this.player?.duration);
-            console.log('duration', this.duration);
-        },
-        volumeChange() {
-            let newVolume = this.usePlayer === 'vlc' ? this.player?.volume / 2 : this.player?.volume;
-            this.$store.commit('volume', newVolume);
-        },
-        timeUpdate() {
-            if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
-                this.$store.commit('duration', this.player?.duration);
-            if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime))
-                this.$store.commit('currentTime', this.player?.currentTime);
-            // console.log('time', this.progress);
+        handleControlDown(e) {
+            this.drag = {
+                startX: e.clientX - this.controlsOffset.x,
+                startY: e.clientY - this.controlsOffset.y,
+            }
+            this.dragControls = true;
         },
         handleMouseDown(e) {
             this.seekBounds = this.$refs.seekBg.$el.getBoundingClientRect();
@@ -312,56 +209,43 @@ export default {
         },
         handleMouseMove(e) {
             if (this.item === null) return;
-            if (e.movementX > 1 || e.movementY > 1) {
+
+            if (this.dragControls && this.bigScreen && this.windowWidth > 700) {
+                this.controlsOffset = {
+                    x: e.clientX - this.drag.startX,
+                    y: e.clientY - this.drag.startY,
+                };
+            }
+            if (this.mouseDown) {
+                let x = e.pageX - this.seekBounds.left;
+                let progress = Math.min(1, Math.max(0, x / this.seekBounds.width));
+                this.seekTo(this.duration * progress);
+            }
+            if (e.movementX > 0 || e.movementY > 0) {
                 this.hideControls = false;
                 clearTimeout(this.moveTimeout);
                 this.moveTimeout = setTimeout(() => {
                     this.hideControls = true;
                 }, 2500);
             }
-            if (this.mouseDown) {
-                let x = e.pageX - this.seekBounds.left;
-                let progress = Math.min(1, Math.max(0, x / this.seekBounds.width));
-                console.log(" progress", progress, this.duration);
-                this.seekTo(this.duration * progress);
-            }
         },
         handleMouseUp() {
             if (this.mouseDown)
                 this.mouseDown = false;
+            if (this.dragControls)
+                this.dragControls = false;
         },
         toggleMute() {
             this.$store.commit('muted', !this.muted);
         },
-        initSrc() {
-            this.$store.commit('currentTime', 0);
-            this.$store.commit('duration', 0);
-            if (this.src === '')
-                return;
-            console.log("Init src", this.src);
-            this.$store.commit('srcLoading', true);
-            if (this.usePlayer === 'hls') {
-                this.hlsPlayer.loadSource(this.src);
-                // this.player?.load();
-                this.hlsPlayer.once(Hls.Events.MANIFEST_PARSED, (event, data) => {
-                    console.log('hls manifest loaded', data);
-                });
-            }
-        },
     },
     computed: {
-        artUrl() {
-            if (!this.canQuery || this.item === null)
-                return '';
-            console.log(this.item);
-            let img = this.item.type === 'episode' ? this.item.thumb ?? this.item.art : this.item.art;
-            return this.transcodeImage({
-                url: img ??
-                    this.item.parentArt ?? this.item.parentThumb ??
-                    this.item.grandparentArt ?? this.item.grandparentThumb,
-                width: this.bigScreen ? 1920 : this.videoWidth,
-                height: this.bigScreen ? 1080 : this.videoHeight,
-            });
+        controlsStyle() {
+            let style = {};
+            if (this.controlsOffset !== null && this.bigScreen && this.windowWidth > 700) {
+                style.transform = `translate(${this.controlsOffset.x}px, ${this.controlsOffset.y}px)`;
+            }
+            return style;
         },
         niceCurrentTime() {
             return Utils.msToTime(this.currentTime * 1000, false);
@@ -377,45 +261,18 @@ export default {
                 return 'mdi-volume-mute';
             return 'mdi-volume-high';
         },
-        videoWidth() {
-            return Math.round(this.videoHeight * this.videoRatio * 100) / 100;
-        },
-        videoHeight() {
-            return this.controlsHeight - 10;
-        },
-        src() {
-            let src;
-            if (this.item === null || !this.canQuery)
-                src = '';
-            else if (this.usePlayer === 'vlc') {
-                // return original part url
-                src = this.originalMkv(this.item);
-            } else {
-                src = this.originalHls(this.item);
-            }
-            console.log('src', src);
-            return src;
-        },
-        usePlayer() {
-            // return 'hls';
-            if (this.platformType === 'electron') {
-                return 'vlc';
-            } else {
-                return 'hls';
-            }
-        },
         bigScreen() {
             return this.$route.query.player === '1';
         },
-        ...mapGetters(['originalHls', 'originalMkv', 'originalDash', 'canQuery', 'transcodeImage']),
+        ...mapGetters(['usePlayer', 'videoWidth', 'videoHeight']),
         ...mapState({
+            controlsHeight: state => state.media.controlsHeight,
             windowWidth: state => state.windowWidth,
             platformType: state => state.platform.type,
             playing: state => state.media.playing,
             volume: state => state.media.volume,
             muted: state => state.media.muted,
             buffers: state => state.media.buffers,
-            videoRatio: state => state.media.videoRatio,
             duration: state => state.media.duration,
             currentTime: state => state.media.currentTime,
             srcLoading: state => state.media.srcLoading,
@@ -423,27 +280,18 @@ export default {
         }),
     },
     watch: {
-        player() {
-            this.volumeChange();
-        },
-        '$route.query.player'() {
-            console.log('bigscreen change');
-            if (!this.bigScreen && this.fullscreen) {
-                console.log('exiting fullscreen');
-                document.exitFullscreen();
-            }
-        },
         muted(n, o) {
-            if (n !== o) this.player.muted = this.muted;
+            if (n !== o) this.$refs.video.player.muted = this.muted;
         },
         volume(newV, oldV) {
             if (newV !== oldV) {
-                console.log(newV);
-                this.player.volume = this.usePlayer === 'vlc' ? newV * 2 : newV;
+                this.$refs.video.player.volume = this.usePlayer === 'vlc' ? newV * 2 : newV;
             }
         },
-        src() {
-            this.initSrc();
+        '$route.query.player'() {
+            if (!this.bigScreen && this.fullscreen) {
+                document.exitFullscreen();
+            }
         },
     },
 }
@@ -488,15 +336,17 @@ export default {
     width: 100%;
     max-width: 1000px;
     height: var(--controlsHeight);
-    bottom: 20px;
-    left: calc(50% - 500px);
     border-radius: 7px;
     padding-left: calc(var(--videoWidth) + 10px);
-    transition: 0.5s, opacity 0.1s;
+    transition: 0.5s, opacity 0.1s, transform 0s;
     z-index: 49;
+    bottom: 20px;
+    left: calc(50% - 500px);
 
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 15px;
 }
 
 .hide-controls .plex-player {
@@ -504,7 +354,7 @@ export default {
 }
 
 .big-screen .plex-player {
-    backdrop-filter: blur(50px) saturate(80%) brightness(80%);
+    backdrop-filter: blur(35px) saturate(80%) brightness(80%);
     background-image: linear-gradient(to top, rgba(20, 20, 20, 0.4), rgba(20, 20, 20, 0.2));
     z-index: 51;
     padding-left: 10px;
@@ -523,7 +373,6 @@ export default {
     /*box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.3);*/
     transition: 0.5s;
     z-index: 50;
-    background-color: transparent;
 }
 
 .small-screen .video-container {
@@ -562,12 +411,7 @@ export default {
     }
 }
 
-.video {
-    width: 100%;
-    height: 100%;
-}
-
-.hide-controls .video {
+.hide-controls >>> .video {
     cursor: none !important;
 }
 
