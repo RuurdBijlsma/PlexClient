@@ -23,13 +23,13 @@
             <router-view/>
         </v-main>
 
-        <plex-player v-if="$store.state.plex.content['metadata11799']"
-                     :item="$store.state.plex.content['metadata11799']"/>
+        <plex-player/>
 
         <custom-dialog/>
         <custom-prompt/>
 
-        <v-snackbar v-for="snack in $store.state.snackbars" app v-model="snack.open" :timeout="snack.timeout"
+        <v-snackbar v-for="snack in $store.state.snackbars" :key="snack.id"
+                    app v-model="snack.open" :timeout="snack.timeout"
                     color="secondary">
             {{ snack.text }}
             <template v-slot:action="{ attrs }">
@@ -194,6 +194,8 @@ export default {
     },
     computed: {
         bigScreen() {
+            if (this.activeItem === null)
+                return false;
             return this.$route.query.player === '1';
         },
         ...mapGetters(['themeColors']),
@@ -202,6 +204,7 @@ export default {
             server: state => state.plex.server,
             scrollY: state => state.scrollY,
             windowWidth: state => state.windowWidth,
+            activeItem: state => state.media.context.item,
         }),
     },
     watch: {

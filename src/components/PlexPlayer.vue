@@ -45,6 +45,8 @@
                        hide-buffering
                        disable-auto-hide-cursor
                        enable-context-menu
+                       autoplay
+                       :poster="artUrl"
                        :dark="$vuetify.theme.dark"/>
             <video ref="hls"
                    @loadeddata="loadedData"
@@ -56,11 +58,14 @@
                    @play="playEvent"
                    @pause="pauseEvent"
                    @progress="updateBuffers"
+                   :poster="artUrl"
+                   autoplay
                    v-else-if="usePlayer === 'hls'"
                    class="video"/>
         </div>
         <v-sheet :color="bigScreen ? 'transparent' : 'default'"
                  :dark="bigScreen"
+                 v-if="item !== null"
                  elevation="4"
                  @mouseenter="mouseOnControls = true"
                  @mouseleave="mouseOnControls = false"
@@ -85,7 +90,7 @@
                     <v-slider @click:prepend="toggleMute"
                               :max="1" :min="0" :step="0.01"
                               dense
-                              v-model="volume"
+                              v-model="$store.state.media.volume"
                               :prepend-icon="volumeIcon"
                               hide-details="auto" class="plex-volume-slider"></v-slider>
                 </div>
@@ -95,10 +100,12 @@
                 <div class="seek-controls" @mousedown="handleMouseDown">
                     <v-sheet class="plex-seek-bg" ref="seekBg" :color="bigScreen ? '#292929' : 'softerBackground'">
                         <v-sheet class="plex-seek-progress" :color="bigScreen ? 'white' : 'primary'"/>
-                        <v-sheet class="plex-buffer" color="#868686" v-for="buffer in buffers" :style="{
-                            left: Math.round(buffer[0] * 1000) / 10 + '%',
-                            width: Math.round((buffer[1] - buffer[0]) * 1000) / 10 + '%',
-                        }"/>
+                        <v-sheet class="plex-buffer" color="#868686"
+                                 v-for="(buffer, i) in buffers" :key="i"
+                                 :style="{
+                                     left: Math.round(buffer[0] * 1000) / 10 + '%',
+                                     width: Math.round((buffer[1] - buffer[0]) * 1000) / 10 + '%',
+                                 }"/>
                         <v-sheet class="plex-seek-thumb" :color="bigScreen ? 'white' : 'primary'"/>
                     </v-sheet>
                 </div>
@@ -111,7 +118,7 @@
                     <v-btn icon small @click="seekBy(-10)">
                         <v-icon small>mdi-skip-backward</v-icon>
                     </v-btn>
-                    <v-btn icon @click="togglePlay" :loading="loadingSrc">
+                    <v-btn icon @click="togglePlay" :loading="srcLoading">
                         <v-icon v-if="playing">mdi-pause</v-icon>
                         <v-icon v-else>mdi-play</v-icon>
                     </v-btn>
@@ -161,33 +168,14 @@ export default {
             maxBufferLength: 120,
             maxBufferSize: 500,
         }),
-        videoRatio: 16 / 9,
         controlsHeight: 150,
         mouseDown: false,
         seekBounds: null,
-        loadingSrc: false,
         fullscreen: false,
         mouseOnControls: false,
         moveTimeout: -1,
         hideControls: false,
-
-        buffers: [],
-        duration: 0,
-        currentTime: 0,
-        volume: 1,
-        muted: false,
-        playing: false,
     }),
-    props: {
-        item: {
-            type: Object,
-            default: null,
-        },
-        transcode: {
-            type: Object,
-            default: null,
-        },
-    },
     beforeDestroy() {
         this.hlsPlayer.destroy();
         document.removeEventListener('mousemove', this.handleMouseMove);
@@ -196,7 +184,9 @@ export default {
     },
     async mounted() {
         await this.$store.restored;
+        this.player = this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
         // this.hlsPlayer.startPosition = 0;
+        console.log("HLS SUPPORTED", Hls.isSupported())
 
         console.log({
             item: this.item,
@@ -206,14 +196,17 @@ export default {
             player: this.player,
             hlsPlayer: this.hlsPlayer,
         });
-        this.volumeChange();
+
+        if (this.player)
+            this.volumeChange();
 
         if (this.usePlayer === 'hls') {
+            console.log("Attaching", this.$refs.hls);
             this.hlsPlayer.attachMedia(this.$refs.hls);
             this.hlsPlayer.on(Hls.Events.MEDIA_ATTACHED, () => {
                 this.initSrc();
             });
-            this.hlsPlayer.on(Hls.Events.ERROR, function (event, data) {
+            this.hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
                 if (data.fatal) {
                     switch (data.type) {
                         case Hls.ErrorTypes.NETWORK_ERROR:
@@ -226,6 +219,7 @@ export default {
                             this.hlsPlayer.recoverMediaError();
                             break;
                         default:
+                            console.warn("hls fatal error, cannot recover")
                             // cannot recover
                             this.hlsPlayer.destroy();
                             break;
@@ -251,12 +245,12 @@ export default {
         },
         updateBuffers() {
             let buffers = [];
-            for (let i = 0; i < this.player.buffered.length; i++) {
-                let start = this.player.buffered.start(i);
-                let end = this.player.buffered.end(i);
+            for (let i = 0; i < this.player?.buffered?.length; i++) {
+                let start = this.player?.buffered?.start(i);
+                let end = this.player?.buffered?.end(i);
                 buffers.push([start / this.duration, end / this.duration]);
             }
-            this.buffers = buffers;
+            this.$store.commit('buffers', buffers);
         },
         enterBigScreen() {
             if (!this.bigScreen)
@@ -269,42 +263,46 @@ export default {
         togglePlay() {
             if (this.playing) {
                 console.log("pause() player");
-                this.player.pause();
+                this.player?.pause();
             } else {
                 console.log("play() player");
-                this.player.play();
+                this.player?.play();
             }
         },
         seekBy(seconds) {
             this.seekTo(this.currentTime + seconds);
         },
         seekTo(seconds) {
-            this.currentTime = seconds;
+            this.$store.commit('currentTime', seconds);
             this.player.currentTime = seconds;
         },
         playEvent() {
-            console.log('recieved play event');
-            this.playing = true;
+            this.$store.commit('playing', true);
         },
         pauseEvent() {
-            console.log('recieved pause event');
-            this.playing = false;
+            this.$store.commit('playing', false);
         },
         canPlay() {
-            this.loadingSrc = false;
+            this.$store.commit('srcLoading', false);
         },
         buffering() {
-            this.loadingSrc = true;
+            this.$store.commit('srcLoading', true);
         },
         loadedData() {
-            this.duration = this.player.duration;
+            console.log(this.player);
+            if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
+                this.$store.commit('duration', this.player?.duration);
             console.log('duration', this.duration);
         },
         volumeChange() {
-            this.volume = this.usePlayer === 'vlc' ? this.player.volume / 2 : this.player.volume;
+            let newVolume = this.usePlayer === 'vlc' ? this.player?.volume / 2 : this.player?.volume;
+            this.$store.commit('volume', newVolume);
         },
         timeUpdate() {
-            this.currentTime = this.player.currentTime;
+            if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
+                this.$store.commit('duration', this.player?.duration);
+            if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime))
+                this.$store.commit('currentTime', this.player?.currentTime);
             // console.log('time', this.progress);
         },
         handleMouseDown(e) {
@@ -313,6 +311,7 @@ export default {
             this.handleMouseMove(e);
         },
         handleMouseMove(e) {
+            if (this.item === null) return;
             if (e.movementX > 1 || e.movementY > 1) {
                 this.hideControls = false;
                 clearTimeout(this.moveTimeout);
@@ -323,7 +322,7 @@ export default {
             if (this.mouseDown) {
                 let x = e.pageX - this.seekBounds.left;
                 let progress = Math.min(1, Math.max(0, x / this.seekBounds.width));
-                console.log("set progress", progress, this.duration);
+                console.log(" progress", progress, this.duration);
                 this.seekTo(this.duration * progress);
             }
         },
@@ -332,19 +331,38 @@ export default {
                 this.mouseDown = false;
         },
         toggleMute() {
-            this.muted = !this.muted;
+            this.$store.commit('muted', !this.muted);
         },
         initSrc() {
-            this.loadingSrc = true;
+            this.$store.commit('currentTime', 0);
+            this.$store.commit('duration', 0);
+            if (this.src === '')
+                return;
+            console.log("Init src", this.src);
+            this.$store.commit('srcLoading', true);
             if (this.usePlayer === 'hls') {
                 this.hlsPlayer.loadSource(this.src);
-                this.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                // this.player?.load();
+                this.hlsPlayer.once(Hls.Events.MANIFEST_PARSED, (event, data) => {
                     console.log('hls manifest loaded', data);
                 });
             }
         },
     },
     computed: {
+        artUrl() {
+            if (!this.canQuery || this.item === null)
+                return '';
+            console.log(this.item);
+            let img = this.item.type === 'episode' ? this.item.thumb ?? this.item.art : this.item.art;
+            return this.transcodeImage({
+                url: img ??
+                    this.item.parentArt ?? this.item.parentThumb ??
+                    this.item.grandparentArt ?? this.item.grandparentThumb,
+                width: this.bigScreen ? 1920 : this.videoWidth,
+                height: this.bigScreen ? 1080 : this.videoHeight,
+            });
+        },
         niceCurrentTime() {
             return Utils.msToTime(this.currentTime * 1000, false);
         },
@@ -360,21 +378,23 @@ export default {
             return 'mdi-volume-high';
         },
         videoWidth() {
-            return this.videoHeight * this.videoRatio;
+            return Math.round(this.videoHeight * this.videoRatio * 100) / 100;
         },
         videoHeight() {
             return this.controlsHeight - 10;
         },
-        player() {
-            return this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
-        },
         src() {
-            if (this.usePlayer === 'vlc') {
+            let src;
+            if (this.item === null || !this.canQuery)
+                src = '';
+            else if (this.usePlayer === 'vlc') {
                 // return original part url
-                return this.originalMkv(this.item);
+                src = this.originalMkv(this.item);
             } else {
-                return this.originalHls(this.item);
+                src = this.originalHls(this.item);
             }
+            console.log('src', src);
+            return src;
         },
         usePlayer() {
             // return 'hls';
@@ -387,12 +407,25 @@ export default {
         bigScreen() {
             return this.$route.query.player === '1';
         },
-        ...mapGetters(['originalHls', 'originalMkv', 'originalDash']),
+        ...mapGetters(['originalHls', 'originalMkv', 'originalDash', 'canQuery', 'transcodeImage']),
         ...mapState({
+            windowWidth: state => state.windowWidth,
             platformType: state => state.platform.type,
+            playing: state => state.media.playing,
+            volume: state => state.media.volume,
+            muted: state => state.media.muted,
+            buffers: state => state.media.buffers,
+            videoRatio: state => state.media.videoRatio,
+            duration: state => state.media.duration,
+            currentTime: state => state.media.currentTime,
+            srcLoading: state => state.media.srcLoading,
+            item: state => state.media.context.item,
         }),
     },
     watch: {
+        player() {
+            this.volumeChange();
+        },
         '$route.query.player'() {
             console.log('bigscreen change');
             if (!this.bigScreen && this.fullscreen) {
@@ -405,6 +438,7 @@ export default {
         },
         volume(newV, oldV) {
             if (newV !== oldV) {
+                console.log(newV);
                 this.player.volume = this.usePlayer === 'vlc' ? newV * 2 : newV;
             }
         },

@@ -63,7 +63,7 @@
                         <v-list-item-title>Add to new playlist</v-list-item-title>
                     </v-list-item>
                     <v-subheader>Add to existing playlist</v-subheader>
-                    <v-list-item @click="addToExisting(playlist)" v-for="playlist in playlists">
+                    <v-list-item @click="addToExisting(playlist)" v-for="playlist in playlists" :key="playlist.key">
                         <v-list-item-title>{{ playlist.title }}</v-list-item-title>
                     </v-list-item>
                 </v-list>
@@ -103,8 +103,8 @@ export default {
             default: null,
         },
         attach: {
-            type: Object,
-            default: false,
+            type: String,
+            default: undefined,
         },
         nudgeTop: {
             type: Number,

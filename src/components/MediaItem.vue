@@ -16,7 +16,11 @@
             <router-link class="item-buttons" :to="to" :style="{
                 borderRadius: itemRounding,
             }">
-                <v-btn v-if="itemType !== 'actor' && itemType !== 'tag'" class="item-play" fab small color="primary">
+                <v-btn v-if="itemType !== 'actor' && itemType !== 'tag'"
+                       class="item-play"
+                       @click.prevent="togglePlay"
+                       fab small
+                       color="primary">
                     <v-icon>mdi-play</v-icon>
                 </v-btn>
                 <v-spacer v-else/>
@@ -122,6 +126,12 @@ export default {
             type: Number,
             default: NaN,
         },
+    },
+    methods: {
+        togglePlay() {
+            this.playItem({item: this.item})
+        },
+        ...mapActions(['playItem']),
     },
     computed: {
         isGenre() {

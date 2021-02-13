@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import theme from './theme-module'
 import plex from './plex-module'
 import search from './search-module'
+import media from './media-module'
 import VuexPersistence from 'vuex-persist'
 import localForage from 'localforage'
 import Utils from "@/js/Utils";
@@ -114,8 +115,14 @@ export default new Vuex.Store({
             commit('setPromiseCache', {key, date: +new Date, promise});
             return await promise;
         },
-        addSnack: async ({state, commit}, {text, to, linkText = 'visit', timeout = 3000}) => {
-            let snack = {text, to, linkText, open: true, timeout};
+        addSnack: async ({state, commit}, {
+            text,
+            to,
+            linkText = 'visit',
+            timeout = 3000,
+            id = Math.random().toString(),
+        }) => {
+            let snack = {text, to, linkText, open: true, timeout, id};
             commit('addSnackObject', snack);
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -163,6 +170,6 @@ export default new Vuex.Store({
             }));
         },
     },
-    modules: {platform, theme, plex, search},
+    modules: {platform, theme, plex, search, media},
     plugins: [vuexLocal.plugin],
 })
