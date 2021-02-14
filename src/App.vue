@@ -1,5 +1,5 @@
 <template>
-    <v-app class="app" :class="{'big-screen': bigScreen}" :style="{
+    <v-app class="app" :class="{'big-screen': bigScreen, 'player-active': activeItem !== null}" :style="{
             fontWeight: $vuetify.theme.dark ? 300 : 500,
             '--primary': themeColors.primary,
             '--foreground': themeColors.foreground,
@@ -55,20 +55,14 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
-// add ability to drag controls around when in fullscreen
-// weird timeline flicker when moving mouse across continue watching item
-// when a request errors don't commit the failed stuff
-
-// scroll over volume slider to change it
-// scroll over timeline to seek forward/backward
-// When item is watched, mark with watched with scrobble
-// Update timeline via api while item is being viewed
+// shuffle
 // Ask to resume from previous position when playing item
 // Implement video player (video for web, vlc-video for electron) (big work)
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
 
+// Fix layout for small window sizes
 // Plex subtitles, how do they work
 // Plex has external subtitles, find api for that
 // Find way around cors for offline images
@@ -86,6 +80,14 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Update timeline via api while item is being viewed
+// When item is watched, mark with watched with scrobble
+// playlist context support
+// scroll over volume slider to change it
+// scroll over timeline to seek forward/backward
+// when a request errors don't commit the failed stuff
+// weird timeline flicker when moving mouse across continue watching item
+// add ability to drag controls around when in fullscreen
 // fix poster image
 // Implement controls while browsing with animation when switching
 // Add person not found image to media list item
@@ -287,7 +289,7 @@ a[no-style]:hover {
     background-position-y: 0px;
 }
 
-.v-application--wrap {
+.player-active > .v-application--wrap {
     padding-bottom: 160px;
 }
 </style>

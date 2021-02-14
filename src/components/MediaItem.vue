@@ -1,5 +1,7 @@
 <template>
-    <div v-if="item && !deletedKeys[item.ratingKey]" class="media-item" :style="{
+    <div v-if="item && !deletedKeys[item.ratingKey]" class="media-item" :class="{
+        'active': isActive,
+    }" :style="{
         '--width': width + 'px',
         '--height': height + 'px',
         '--imgHeight': imgHeight + 'px',
@@ -16,26 +18,24 @@
             <router-link class="item-buttons" :to="to" :style="{
                 borderRadius: itemRounding,
             }">
-                <v-btn v-if="itemType !== 'actor' && itemType !== 'tag'"
-                       class="item-play"
-                       @click.prevent="togglePlay"
-                       fab small
-                       color="primary">
-                    <v-icon>mdi-play</v-icon>
-                </v-btn>
+                <v-chip label small v-if="isActive" class="playing-chip">
+                    <v-icon class="mr-1 ml-neg" small>mdi-play</v-icon>
+                    Playing
+                </v-chip>
+                <play-fab v-if="canPlay" :item="item"/>
                 <v-spacer v-else/>
                 <media-item-menu dark :item="item"/>
             </router-link>
             <div class="img-overlay">
-                <v-progress-linear class="view-progress"
-                                   :style="{
-                                       height: itemRounding,
-                                       borderBottomLeftRadius: itemRounding,
-                                       borderBottomRightRadius: itemRounding,
-                                       top: `calc(100% - ${itemRounding})`
-                                   }"
-                                   v-if="item.viewOffset && item.duration"
-                                   :value="item.viewOffset / item.duration * 100"/>
+                <v-sheet class="view-progress"
+                         color="primary"
+                         :style="{
+                             height: itemRounding,
+                             borderBottomLeftRadius: itemRounding,
+                             borderBottomRightRadius: viewProgress > 0.99 ? itemRounding : '0',
+                             width: `${Math.round(viewProgress * 10000) / 100}%`
+                         }"
+                         v-if="item.viewOffset && item.duration"/>
             </div>
         </div>
         <div class="item-bottom" v-if="!hideTitle" :style="{
@@ -81,10 +81,11 @@ import Utils from "@/js/Utils";
 import {mapActions, mapGetters, mapState} from "vuex";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
+import PlayFab from "@/components/PlayFab";
 
 export default {
     name: "MediaItem",
-    components: {MediaItemMenu, EpisodeLink, PlexImage},
+    components: {PlayFab, MediaItemMenu, EpisodeLink, PlexImage},
     props: {
         item: {
             type: Object,
@@ -127,13 +128,16 @@ export default {
             default: NaN,
         },
     },
-    methods: {
-        togglePlay() {
-            this.playItem({item: this.item})
-        },
-        ...mapActions(['playItem']),
-    },
     computed: {
+        canPlay() {
+            return this.itemCanPlay(this.item);
+        },
+        isActive() {
+            return this.itemIsActive(this.item);
+        },
+        viewProgress() {
+            return this.item.viewOffset / this.item.duration;
+        },
         isGenre() {
             return this.item?.filter?.includes('genre')
         },
@@ -182,7 +186,7 @@ export default {
             return {
                 actor: '50%',
                 tag: '50%',
-            }[this.itemType] ?? '0.4vw';
+            }[this.itemType] ?? '5px';
         },
         itemThumb() {
             let thumb;
@@ -228,9 +232,12 @@ export default {
                 tag: 1,
             }[this.itemType] ?? 16 / 9;
         },
-        ...mapGetters(['notFoundImg']),
+        ...mapGetters(['notFoundImg', 'itemCanPlay', 'itemIsActive']),
         ...mapState({
+            srcLoading: state => state.media.srcLoading,
+            playing: state => state.media.playing,
             deletedKeys: state => state.plex.deletedKeys,
+            context: state => state.media.context,
         }),
     }
 }
@@ -269,6 +276,11 @@ export default {
 .view-progress {
     bottom: 0;
     left: 0;
+    position: absolute;
+}
+
+.active .item-buttons {
+    opacity: 1;
 }
 
 .item-buttons {
@@ -282,7 +294,7 @@ export default {
     background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 50%);
     opacity: 0;
 
-    padding: calc(var(--width) / 10);
+    padding: calc(var(--width) / 20);
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -293,6 +305,12 @@ export default {
 
 .item-buttons:hover {
     opacity: 1;
+}
+
+.playing-chip {
+    position: absolute;
+    top: calc(var(--width) / 20);
+    left: calc(var(--width) / 20);
 }
 
 .item-bottom {
@@ -330,6 +348,10 @@ export default {
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
+}
+
+.ml-neg {
+    margin-left: -5px;
 }
 
 </style>

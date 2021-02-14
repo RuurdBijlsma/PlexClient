@@ -46,7 +46,7 @@
             @mousedown="handleControlDown"
             class="plex-player">
             <div class="top-controls ml-4 mt-4">
-                <div class="plex-media-info">
+                <div class="plex-media-info" @mousedown.stop="empty">
                     <template v-if="item.type==='episode'">
                         <router-link :to="`/show/${item.grandparentRatingKey}`" no-style>
                             {{ item.grandparentTitle }}
@@ -61,7 +61,7 @@
                         </router-link>
                     </template>
                 </div>
-                <div class="plex-volume mr-5" @mousedown.stop="test">
+                <div class="plex-volume mr-5" @mousedown.stop="empty" @wheel.prevent="volumeWheel">
                     <v-slider @click:prepend="toggleMute"
                               :max="1" :min="0" :step="0.01"
                               dense
@@ -72,11 +72,11 @@
             </div>
             <div class="middle-controls ml-4">
                 <span>{{ niceCurrentTime }} / {{ niceDuration }}</span>
-                <div class="seek-controls" @mousedown.stop="handleMouseDown">
+                <div class="seek-controls" @mousedown.stop="handleMouseDown" @wheel.prevent="seekWheel">
                     <v-sheet class="plex-seek-bg" ref="seekBg" :color="bigScreen ? '#292929' : 'softerBackground'">
                         <v-sheet class="plex-seek-progress" :color="bigScreen ? 'white' : 'primary'"/>
                         <v-sheet class="plex-buffer" color="#868686"
-                                 v-for="(buffer, i) in buffers" :key="i"
+                                 v-for="(buffer, i) in progressBuffers" :key="i"
                                  :style="{
                                      left: Math.round(buffer[0] * 1000) / 10 + '%',
                                      width: Math.round((buffer[1] - buffer[0]) * 1000) / 10 + '%',
@@ -86,8 +86,8 @@
                 </div>
             </div>
             <div class="bottom-controls ml-4 mt-1">
-                <div class="left-control-buttons">
-                    <v-btn icon small>
+                <div class="left-control-buttons" @mousedown.stop="empty">
+                    <v-btn icon small @click="skip(false)">
                         <v-icon small>mdi-skip-previous</v-icon>
                     </v-btn>
                     <v-btn icon small @click="seekBy(-10)">
@@ -100,11 +100,14 @@
                     <v-btn icon small @click="seekBy(10)">
                         <v-icon small>mdi-skip-forward</v-icon>
                     </v-btn>
-                    <v-btn icon small>
+                    <v-btn icon small @click="skip(true)">
                         <v-icon small>mdi-skip-next</v-icon>
                     </v-btn>
+                    <v-btn icon small @click="stopPlaying">
+                        <v-icon small>mdi-close</v-icon>
+                    </v-btn>
                 </div>
-                <div class="right-control-buttons mr-5">
+                <div class="right-control-buttons mr-5" @mousedown.stop="empty">
                     <v-btn icon small plain>
                         <v-icon small>mdi-repeat</v-icon>
                     </v-btn>
@@ -126,7 +129,7 @@
 
 <script>
 import Utils from "@/js/Utils";
-import {mapGetters, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
 import PlexVideo from "@/components/PlexVideo";
@@ -157,7 +160,15 @@ export default {
         document.addEventListener('fullscreenchange', this.changeFullscreen, false);
     },
     methods: {
-        test() {
+        seekWheel(e) {
+            this.seekBy(e.deltaY / -10);
+        },
+        volumeWheel(e) {
+            let maxVolume = this.usePlayer === 'vlc' ? 2 : 1;
+            let newVolume = this.volume - e.deltaY / 2000;
+            this.$store.commit('volume', Math.max(0, Math.min(newVolume, maxVolume)));
+        },
+        empty() {
 
         },
         toggleFullscreen() {
@@ -180,20 +191,16 @@ export default {
                 this.$router.push({query: {...this.$route.query, player: 0}});
         },
         togglePlay() {
-            if (this.playing) {
+            if (this.playing)
                 this.$store.commit('playing', false);
-                this.$refs.video.player.pause();
-            } else {
+            else
                 this.$store.commit('playing', true);
-                this.$refs.video.player.play();
-            }
         },
         seekTo(seconds) {
             this.$store.commit('currentTime', seconds);
-            this.$refs.video.player.currentTime = seconds;
         },
         seekBy(seconds) {
-            this.seekTo(this.currentTime + seconds);
+            this.seekTo(Math.max(0, Math.min(this.duration, this.currentTime + seconds)));
         },
         handleControlDown(e) {
             this.drag = {
@@ -238,11 +245,17 @@ export default {
         toggleMute() {
             this.$store.commit('muted', !this.muted);
         },
+        ...mapActions(['markWatched', 'skip', 'stopPlaying']),
     },
     computed: {
+        progressBuffers() {
+            if (this.duration === 0)
+                return [];
+            return this.buffers.map(([s, e]) => [s / this.duration, e / this.duration]);
+        },
         controlsStyle() {
             let style = {};
-            if (this.controlsOffset !== null && this.bigScreen && this.windowWidth > 700) {
+            if (this.bigScreen && this.windowWidth > 700) {
                 style.transform = `translate(${this.controlsOffset.x}px, ${this.controlsOffset.y}px)`;
             }
             return style;
@@ -254,7 +267,9 @@ export default {
             return Utils.msToTime(this.duration * 1000, false);
         },
         progress() {
-            return this.currentTime / (this.duration > 0 ? this.duration : 1);
+            if (this.duration === 0)
+                return 0;
+            return Math.min(1, this.currentTime / this.duration);
         },
         volumeIcon() {
             if (this.muted)
@@ -280,14 +295,6 @@ export default {
         }),
     },
     watch: {
-        muted(n, o) {
-            if (n !== o) this.$refs.video.player.muted = this.muted;
-        },
-        volume(newV, oldV) {
-            if (newV !== oldV) {
-                this.$refs.video.player.volume = this.usePlayer === 'vlc' ? newV * 2 : newV;
-            }
-        },
         '$route.query.player'() {
             if (!this.bigScreen && this.fullscreen) {
                 document.exitFullscreen();

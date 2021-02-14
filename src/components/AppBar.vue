@@ -6,21 +6,22 @@
             <router-link to="/"
                          :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
                          class="text-logo"/>
-            <div class="links" v-if="canQuery">
-                <router-link class="no-drag" color="foreground" to="/" exact>Home</router-link>
-                <router-link class="no-drag" color="foreground"
-                             :to="`/explore/${section.key}`" exact
-                             v-for="section in sections">
+            <div class="links ml-2 mr-2" v-if="canQuery">
+                <v-btn plain to="/?player=0" exact class="no-drag no-cap">Home</v-btn>
+                <v-btn plain class="no-drag no-cap" :to="`/explore/${section.key}?player=0`"
+                       v-for="section in sections">
                     {{ section.title }}
-                </router-link>
+                </v-btn>
                 <v-menu open-on-hover offset-y content-class="elevation-0">
                     <template v-slot:activator="{ on, attrs }">
-                    <span class="no-drag library-link"
-                          :class="{'router-link-active': $route.fullPath.startsWith('/library')}"
-                          v-bind="attrs"
-                          v-on="on">
-                        Library <v-icon>mdi-chevron-down</v-icon>
-                    </span>
+                        <v-btn class="no-drag no-cap"
+                               :plain="!highlightLibrary"
+                               :text="highlightLibrary"
+                               v-bind="attrs"
+                               v-on="on">
+                            Library
+                            <v-icon>mdi-chevron-down</v-icon>
+                        </v-btn>
                     </template>
                     <v-list rounded dense class="no-drag">
                         <v-list-item :to="`/library/${section.key}`" v-for="section in sections" :key="section.key">
@@ -32,7 +33,7 @@
                                 <v-list-item-title>{{ section.title }}</v-list-item-title>
                             </v-list-item-content>
                         </v-list-item>
-                        <v-list-item to="/playlists">
+                        <v-list-item to="/playlists?player=0">
                             <v-list-item-icon>
                                 <v-icon>mdi-playlist-play</v-icon>
                             </v-list-item-icon>
@@ -142,6 +143,9 @@ export default {
         ...mapActions(['closeWindow', 'minimizeWindow', 'logout']),
     },
     computed: {
+        highlightLibrary() {
+            return this.$route.fullPath.startsWith('/library') || this.$route.fullPath.startsWith('/playlists');
+        },
         ...mapGetters(['canQuery']),
         ...mapState({
             platform: state => state.platform.type,
@@ -183,21 +187,10 @@ export default {
     align-items: center;
 }
 
-.links > a, .library-link {
-    color: var(--foreground);
-    text-decoration: none;
-    font-size: 16px;
-    margin: 0 20px;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    display: inline-flex;
-    height: 50px;
-    line-height: 50px;
-    vertical-align: middle;
-}
-
-.links .router-link-active {
-    opacity: 1;
+.no-cap {
+    text-transform: initial !important;
+    font-size: 14px !important;
+    font-weight: 300;
 }
 
 .header-right {

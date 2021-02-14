@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 
 export default {
     name: "MediaItemMenu",
@@ -163,10 +163,13 @@ export default {
             return this.$store.state.plex.content?.['playlists'];
         },
         watched() {
+            let override = this.watchedKeys[this.item.ratingKey];
+            if (override !== undefined)
+                return override;
             return this.itemWatched(this.item);
         },
         canPlay() {
-            return ['show', 'season', 'movie', 'episode', 'playlist'].includes(this.item.type);
+            return this.itemCanPlay(this.item);
         },
         canWatch() {
             return ['show', 'season', 'movie', 'episode'].includes(this.item.type);
@@ -174,7 +177,10 @@ export default {
         isParent() {
             return ['playlist', 'show', 'season'].includes(this.item.type);
         },
-        ...mapGetters(['itemWatched']),
+        ...mapGetters(['itemWatched', 'itemCanPlay']),
+        ...mapState({
+            watchedKeys: state => state.plex.watchedKeys,
+        }),
     },
 }
 </script>

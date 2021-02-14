@@ -1,5 +1,7 @@
 <template>
-    <v-list-item v-if="item && !deletedKeys[item.ratingKey]">
+    <v-list-item v-if="item && !deletedKeys[item.ratingKey]" :class="{
+        'active': isActive,
+    }">
         <div v-if="!isNaN(number) || playlist !== null" class="before-square">
             <div class="item-number" v-if="!isNaN(number)">
                 <span>{{ number }}</span>
@@ -27,9 +29,7 @@
                         :src="itemThumb"></plex-image>
             <router-link :to="to">
                 <div class="item-img-overlay">
-                    <v-btn v-if="itemType !== 'actor' && itemType !== 'genre'" color="primary" fab x-small>
-                        <v-icon>mdi-play</v-icon>
-                    </v-btn>
+                    <play-fab v-if="canPlay" :item="item" x-small :playlist="playlist"/>
                 </div>
             </router-link>
         </div>
@@ -75,10 +75,11 @@ import EpisodeLink from "@/components/EpisodeLink";
 import Utils from "@/js/Utils";
 import MediaItemMenu from "@/components/MediaItemMenu";
 import {mapActions, mapGetters, mapState} from "vuex";
+import PlayFab from "@/components/PlayFab";
 
 export default {
     name: "MediaListItem",
-    components: {MediaItemMenu, EpisodeLink, PlexImage},
+    components: {PlayFab, MediaItemMenu, EpisodeLink, PlexImage},
     props: {
         item: {
             type: Object,
@@ -137,6 +138,9 @@ export default {
         ...mapActions(['movePlaylistItem']),
     },
     computed: {
+        canPlay() {
+            return this.itemCanPlay(this.item);
+        },
         duration() {
             return Utils.niceTime(new Date(this.item.duration));
         },
@@ -157,6 +161,9 @@ export default {
             return {
                 actor: '50%',
             }[this.itemType] ?? '0.3vw';
+        },
+        isActive() {
+            return this.itemIsActive(this.item);
         },
         itemThumb() {
             let thumb;
@@ -186,7 +193,7 @@ export default {
                 playlist: 45,
             }[this.itemType] ?? 60;
         },
-        ...mapGetters(['notFoundImg']),
+        ...mapGetters(['notFoundImg', 'itemCanPlay', 'itemIsActive']),
         ...mapState({
             deletedKeys: state => state.plex.deletedKeys,
         }),
@@ -255,6 +262,10 @@ export default {
     justify-content: center;
     align-items: center;
     transition: opacity 0.15s;
+}
+
+.active .item-img-overlay {
+    opacity: 1;
 }
 
 .item-img-overlay:hover {

@@ -1,6 +1,7 @@
 <template>
     <div class="main-deck mt-3" v-if="item" :style="{
                 '--imgHeight': Math.round(imgHeight) + 'px',
+                '--imgWidth': Math.round(imgWidth) + 'px',
                 backdropFilter: `blur(40px) brightness(${$vuetify.theme.dark ? '150' : '110'}%) saturate(150%)`,
             }">
         <div class="main-info">
@@ -23,14 +24,22 @@
                 {{ item.summary }}
             </p>
             <div class="data-bottom">
-                <v-btn elevation="0" fab color="primary" small>
-                    <v-icon>mdi-play</v-icon>
-                </v-btn>
+                <play-fab v-if="item" :item="item"/>
                 <media-item-menu plain :item="item"/>
             </div>
         </div>
-        <plex-image class="main-img" v-if="mainThumb" :width="imgWidth" :height="imgHeight"
-                    :src="mainThumb"/>
+        <div class="main-img">
+            <plex-image class="main-plex-img" v-if="mainThumb" :width="imgWidth" :height="imgHeight"
+                        :src="mainThumb"/>
+            <div class="main-img-overlay">
+                <v-sheet class="view-progress"
+                         color="primary"
+                         :style="{
+                             width: `${Math.round(viewProgress * 10000) / 100}%`
+                         }"
+                         v-if="item.viewOffset && item.duration"/>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -41,10 +50,11 @@ import ItemRow from "@/components/ItemRow";
 import DataHeader from "@/components/DataHeader";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
+import PlayFab from "@/components/PlayFab";
 
 export default {
     name: "DataCard",
-    components: {MediaItemMenu, EpisodeLink, DataHeader, ItemRow, MediaItem, PlexImage},
+    components: {PlayFab, MediaItemMenu, EpisodeLink, DataHeader, ItemRow, MediaItem, PlexImage},
     props: {
         item: {
             type: Object,
@@ -56,6 +66,9 @@ export default {
         },
     },
     computed: {
+        viewProgress() {
+            return this.item.viewOffset / this.item.duration;
+        },
         imgHeight() {
             return this.imgWidth / 16 * 9
         },
@@ -79,6 +92,24 @@ export default {
 
 .main-img {
     clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+    position: relative;
+    height: var(--imgHeight);
+    width: var(--imgWidth);
+}
+
+.main-img > * {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.view-progress {
+    height: 5px;
+    bottom: 0;
+    top: auto;
+    position: absolute;
 }
 
 .main-header {

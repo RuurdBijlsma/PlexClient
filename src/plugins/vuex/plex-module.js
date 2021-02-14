@@ -6,6 +6,7 @@ import Vue from 'vue';
 export default {
     state: {
         deletedKeys: {},
+        watchedKeys: {},
         content: {
             library: null,
             sections: null,
@@ -29,6 +30,8 @@ export default {
     mutations: {
         addDeletedKey: (state, key) => Vue.set(state.deletedKeys, key, true),
         clearDeletedKeys: state => state.deletedKeys = {},
+        setWatchedKey: (state, {key, value}) => Vue.set(state.watchedKeys, key, value),
+        clearWatchedKeys: state => state.watchedKeys = {},
         resetContent: state => state.content = {
             library: null,
             sections: null,
@@ -97,11 +100,17 @@ export default {
             }),
         originalMkv: (state, getters) => (item) =>
             getters.plexUrl(item?.Media?.[0]?.Part?.[0]?.key),
-        itemWatched: () => item => item.type === 'show' || item.type === 'season' ?
-            item.leafCount === item.viewedLeafCount :
-            item.type === 'episode' || item.type === 'movie' ?
-                item.viewCount > 0 :
-                false
+        itemWatched: () => item => {
+            if (item.type === 'show' || item.type === 'season') {
+                return item.leafCount === item.viewedLeafCount
+            } else {
+                if (item.type === 'episode' || item.type === 'movie') {
+                    return item.viewCount > 0
+                } else {
+                    return false
+                }
+            }
+        }
     },
     actions: {
         async deleteItem({commit, dispatch}, item) {
@@ -113,17 +122,11 @@ export default {
             }
         },
         async toggleWatched({dispatch, getters, state}, item) {
-            const watched = getters.itemWatched(item);
-            if (watched)
+            let override = state.watchedKeys[item.ratingKey];
+            if (override !== undefined ? override : getters.itemWatched(item))
                 await dispatch('markUnwatched', item.ratingKey);
             else
                 await dispatch('markWatched', item.ratingKey);
-
-            await dispatch('updateMetadata', item.ratingKey);
-            if (['movie', 'episode'].includes(item.type))
-                item.viewCount = state.content['metadata' + item.ratingKey].viewCount;
-            else
-                item.viewedLeafCount = state.content['metadata' + item.ratingKey].viewedLeafCount;
         },
         async updatePublicIp({commit}) {
             let ip = await publicIp.v4();
@@ -132,6 +135,44 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
+        async getQueue({dispatch, commit, getters}, queueKey) {
+            let query = qs.stringify({
+                repeat: 0,
+                own: 1,
+                includeChapters: 1,
+                includeMarkers: 1,
+                includeGeolocation: 1,
+                includeExternalMedia: 1,
+            });
+            return (await getters.plexApi.query(`/playQueues/${queueKey}?${query}`)).MediaContainer;
+        },
+        async createQueue({dispatch, getters, commit, state}, fullKey) {
+            let query = qs.stringify({
+                type: 'video',
+                continuous: '1',
+                uri: `server://${state.server.clientIdentifier}/com.plexapp.plugins.library${fullKey}`,
+                repeat: '0',
+                own: '1',
+                includeChapters: '1',
+                includeMarkers: '1',
+                includeGeolocation: '1',
+                includeExternalMedia: '1',
+            });
+            return (await getters.plexApi.postQuery(`/playQueues?${query}`)).MediaContainer;
+        },
+        async setTimeline({dispatch, getters}, {ratingKey, key, playbackTime, duration, state, time,playQueueItemID}) {
+            let query = qs.stringify({
+                ratingKey,
+                key,
+                playbackTime,
+                state,
+                hasMDE: `1`,
+                time,
+                duration,
+                playQueueItemID,
+            });
+            return await getters.plexApi.query(`/:/timeline?${query}`);
+        },
         async movePlaylistItem({dispatch, getters}, {playlistKey, playlistItemID, afterItemId}) {
             let query = qs.stringify({
                 after: afterItemId,
@@ -167,10 +208,12 @@ export default {
         async deletePlaylist({getters}, key) {
             return await getters.plexApi.deleteQuery(`/playlists/${key}`);
         },
-        async markUnwatched({getters}, key) {
+        async markUnwatched({getters, commit}, key) {
+            commit('setWatchedKey', {key, value: false});
             return await getters.plexApi.query(`/:/unscrobble?key=${key}&identifier=com.plexapp.plugins.library`);
         },
-        async markWatched({getters}, key) {
+        async markWatched({getters, commit}, key) {
+            commit('setWatchedKey', {key, value: true});
             return await getters.plexApi.query(`/:/scrobble?key=${key}&identifier=com.plexapp.plugins.library`);
         },
         async updatePlaylist({dispatch, commit}, key) {
@@ -317,7 +360,7 @@ export default {
                 return await dispatch('getCached', {fun, key, lifetime});
             } catch (e) {
                 console.warn(`Error in ${method} query to:`, url, {e});
-                return false;
+                throw new Error(e);
             }
         },
         async offlinePlexImg({}, url) {

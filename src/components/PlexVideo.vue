@@ -8,6 +8,7 @@
                    @loadeddata="loadedData"
                    @timeupdate="timeUpdate"
                    @volumechange="volumeChange"
+                   @durationchange="durationChange"
                    @canplay="canPlay"
                    @playing="canPlay"
                    @waiting="buffering"
@@ -20,8 +21,10 @@
                    :poster="artUrl"
                    :dark="$vuetify.theme.dark"/>
         <video ref="hls"
+               :autoplay="playOnLoad"
                @loadeddata="loadedData"
                @timeupdate="timeUpdate"
+               @durationchange="durationChange"
                @volumechange="volumeChange"
                @canplay="canPlay"
                @playing="canPlay"
@@ -32,14 +35,13 @@
                :style="{
                    backgroundImage: hidePoster ? '' : `url(${artUrl})`,
                }"
-               autoplay
                v-else-if="usePlayer === 'hls'"
                class="video"/>
     </div>
 </template>
 
 <script>
-import {mapGetters, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 import Hls from "hls.js";
 
@@ -49,16 +51,38 @@ export default {
     name: "PlexVideo",
     components: {...vlcComponent},
     data: () => ({
+        lastTimelineUpdate: 0,
         hlsPlayer: null,
         player: null,
         hidePoster: false,
+        dontWatchTime: false,
+        dontWatchPlaying: false,
+        dontWatchVolume: false,
+        markedWatched: false,
+        destroyed: false,
+        playbackInterval: -1,
     }),
     beforeDestroy() {
+        this.$store.commit('currentTime', 0);
+        this.$store.commit('duration', 0);
+        this.$store.commit('buffers', []);
+
+        clearInterval(this.playbackInterval);
+
         if (this.usePlayer === 'hls')
             this.hlsPlayer.destroy();
     },
     mounted() {
         this.player = this.getPlayer();
+        this.player.muted = this.muted;
+        this.player.volume = this.volume;
+        this.$store.commit('playbackTime', 0);
+        this.playbackInterval = setTimeout(() => {
+            if (this.playing)
+                this.$store.commit('playbackTime', this.playbackTime + 1);
+        }, 1000);
+        console.log("current time at mount", this.currentTime);
+
         console.log("Mounted plex video");
         // this.hlsPlayer.startPosition = 0;
         console.log("HLS SUPPORTED", Hls.isSupported())
@@ -83,8 +107,7 @@ export default {
             return this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
         },
         initSrc() {
-            this.$store.commit('currentTime', 0);
-            this.$store.commit('duration', 0);
+            this.$store.commit('duration', this.item.duration / 1000 ?? 0);
             if (this.src === '')
                 return;
             this.$store.commit('srcLoading', true);
@@ -95,6 +118,7 @@ export default {
                 }
 
                 this.hlsPlayer = new Hls({
+                    startPosition: this.currentTime,
                     progressive: true,
                     lowLatencyMode: true,
                     maxBufferLength: 120,
@@ -136,10 +160,18 @@ export default {
             }
         },
         playEvent() {
-            this.$store.commit('playing', true);
+            if (!this.playing) {
+                this.dontWatchPlaying = true;
+                this.$store.commit('playing', true);
+                this.updateTimeline();
+            }
         },
         pauseEvent() {
-            this.$store.commit('playing', false);
+            if (this.playing) {
+                this.dontWatchPlaying = true;
+                this.$store.commit('playing', false);
+                this.updateTimeline();
+            }
         },
         canPlay() {
             this.$store.commit('srcLoading', false);
@@ -148,40 +180,43 @@ export default {
             this.$store.commit('srcLoading', true);
         },
         loadedData() {
-            console.log(this.player);
             if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
                 this.$store.commit('duration', this.player?.duration);
             console.log('duration', this.duration);
-            console.log(this.player.videoWidth / this.player.videoHeight);
             this.$store.commit('videoRatio', this.player.videoWidth / this.player.videoHeight);
             this.hidePoster = true;
+            setTimeout(() => this.$store.commit('playOnLoad', false), 100);
         },
         volumeChange() {
             let newVolume = this.usePlayer === 'vlc' ? this.player?.volume / 2 : this.player?.volume;
+            this.dontWatchVolume = true;
             this.$store.commit('volume', newVolume);
         },
         timeUpdate() {
+            if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime)) {
+                this.dontWatchTime = true;
+                this.$store.commit('currentTime', this.player?.currentTime);
+            }
+        },
+        durationChange() {
             if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
                 this.$store.commit('duration', this.player?.duration);
-            if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime))
-                this.$store.commit('currentTime', this.player?.currentTime);
-            // console.log('time', this.progress);
         },
         updateBuffers() {
             let buffers = [];
             for (let i = 0; i < this.player?.buffered?.length; i++) {
                 let start = this.player?.buffered?.start(i);
                 let end = this.player?.buffered?.end(i);
-                buffers.push([start / this.duration, end / this.duration]);
+                buffers.push([start, end]);
             }
             this.$store.commit('buffers', buffers);
         },
+        ...mapActions(['markWatched', 'updateTimeline']),
     },
     computed: {
         artUrl() {
             if (!this.canQuery || this.item === null)
                 return '';
-            console.log(this.item);
             let img = this.item.type === 'episode' ? this.item.thumb ?? this.item.art : this.item.art;
             return this.transcodeImage({
                 url: img ??
@@ -207,18 +242,56 @@ export default {
         bigScreen() {
             return this.$route.query.player === '1';
         },
-        ...mapGetters(['originalHls', 'originalMkv', 'originalDash', 'canQuery',
-            'transcodeImage', 'usePlayer', 'videoWidth', 'videoHeight']),
+        ...mapGetters([
+            'originalHls', 'originalMkv', 'originalDash', 'canQuery',
+            'transcodeImage', 'usePlayer', 'videoWidth', 'videoHeight', 'itemWatched'
+        ]),
         ...mapState({
             platformType: state => state.platform.type,
             item: state => state.media.context.item,
+            playing: state => state.media.playing,
+            currentTime: state => state.media.currentTime,
+            duration: state => state.media.duration,
+            volume: state => state.media.volume,
+            muted: state => state.media.muted,
+            playOnLoad: state => state.media.playOnLoad,
+            playbackTime: state => state.media.playbackTime,
         }),
     },
     watch: {
         player() {
             this.volumeChange();
         },
-    }
+        currentTime(n, o) {
+            if (!this.markedWatched && this.currentTime / this.duration > 0.75) {
+                this.markedWatched = true;
+                this.markWatched(this.item.ratingKey);
+            }
+
+            if (Math.abs(this.lastTimelineUpdate - this.currentTime) > 10) {
+                this.lastTimelineUpdate = this.currentTime;
+                console.log('set timeline')
+                this.updateTimeline();
+            }
+
+            if (this.dontWatchTime) this.dontWatchTime = false;
+            else if (n !== o) this.player.currentTime = this.currentTime;
+        },
+        playing(n, o) {
+            if (this.dontWatchPlaying) return this.dontWatchPlaying = false;
+            if (n !== o) {
+                if (n) this.player.play();
+                else this.player.pause();
+            }
+        },
+        volume(n, o) {
+            if (this.dontWatchVolume) return this.dontWatchVolume = false;
+            if (n !== o) this.player.volume = this.usePlayer === 'vlc' ? n * 2 : n;
+        },
+        muted(n, o) {
+            if (n !== o) this.player.muted = this.muted;
+        },
+    },
 }
 </script>
 

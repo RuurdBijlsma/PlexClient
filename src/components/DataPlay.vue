@@ -1,9 +1,6 @@
 <template>
     <div class="episode-buttons">
-        <v-btn color="primary" small rounded elevation="0">
-            <v-icon class="mr-2">mdi-play</v-icon>
-            Play
-        </v-btn>
+        <play-fab class="play-button" :item="item" text/>
         <div>
             <v-tooltip top v-if="item.type !== 'playlist'">
                 <template v-slot:activator="{ on, attrs }">
@@ -25,12 +22,13 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import MediaItemMenu from "@/components/MediaItemMenu";
+import PlayFab from "@/components/PlayFab";
 
 export default {
     name: "DataPlay",
-    components: {MediaItemMenu},
+    components: {PlayFab, MediaItemMenu},
     props: {
         item: {
             type: Object,
@@ -50,9 +48,15 @@ export default {
     },
     computed: {
         watched() {
+            let override = this.watchedKeys[this.item.ratingKey];
+            if (override !== undefined)
+                return override;
             return this.itemWatched(this.item);
         },
         ...mapGetters(['itemWatched']),
+        ...mapState({
+            watchedKeys: state => state.plex.watchedKeys,
+        }),
     },
 }
 </script>
@@ -63,5 +67,9 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.play-button {
+    width: 110px;
 }
 </style>

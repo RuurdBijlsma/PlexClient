@@ -25,6 +25,14 @@ const vuexLocal = new VuexPersistence({
         search: {
             recentSearches: state.search.recentSearches,
         },
+        media: {
+            currentTime: state.media.currentTime,
+            context: state.media.context,
+            volume: state.media.volume,
+            muted: state.media.muted,
+            shuffle: state.media.shuffle,
+            repeat: state.media.repeat,
+        },
     }),
     storage: localForage,
     asyncStorage: true,
