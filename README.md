@@ -1,7 +1,12 @@
 # PleX
 
+### Home
 ![Home](https://github.com/ruurdbijlsma/PlexClient/blob/master/.gh/home.png?raw=true)
+
+### Player
 ![Player](https://github.com/ruurdbijlsma/PlexClient/blob/master/.gh/player.png?raw=true)
+
+### Show
 ![Show](https://github.com/ruurdbijlsma/PlexClient/blob/master/.gh/show.png?raw=true)
 
 ## Project setup
