@@ -20,10 +20,10 @@
                 </v-btn>
                 <template v-if="platformType === 'electron'">
                     <v-spacer></v-spacer>
-                    <v-btn icon dark small class="no-drag">
+                    <v-btn icon dark small class="no-drag" @click="minimizeWindow">
                         <v-icon small>mdi-minus</v-icon>
                     </v-btn>
-                    <v-btn icon dark small class="no-drag ml-2">
+                    <v-btn icon dark small class="no-drag ml-2" @click="closeWindow">
                         <v-icon small>mdi-close</v-icon>
                     </v-btn>
                 </template>
@@ -245,7 +245,7 @@ export default {
         toggleMute() {
             this.$store.commit('muted', !this.muted);
         },
-        ...mapActions(['markWatched', 'skip', 'stopPlaying']),
+        ...mapActions(['markWatched', 'skip', 'stopPlaying', 'minimizeWindow', 'closeWindow']),
     },
     computed: {
         progressBuffers() {

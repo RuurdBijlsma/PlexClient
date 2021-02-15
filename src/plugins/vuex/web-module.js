@@ -1,4 +1,5 @@
 import qs from "qs";
+import {remote} from "electron";
 
 export default {
     state: {
@@ -10,6 +11,10 @@ export default {
     },
     getters: {},
     actions: {
+        async closeWindow({}) {
+        },
+        async minimizeWindow({}) {
+        },
         initializePlatform: async ({state, commit, dispatch, getters, rootState}) => {
         },
         setPlatformPlaying: ({state}, playing) => {

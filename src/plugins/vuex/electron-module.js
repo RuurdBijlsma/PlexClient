@@ -53,7 +53,7 @@ export default {
             remote.getCurrentWindow().openDevTools();
         },
         async closeWindow({}) {
-            remote.app.quit();
+            remote.getCurrentWindow().close();
         },
         async minimizeWindow({}) {
             remote.getCurrentWindow().minimize();

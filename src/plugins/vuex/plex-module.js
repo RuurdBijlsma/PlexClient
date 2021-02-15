@@ -422,7 +422,7 @@ export default {
                 }
             }).then(d => d.json());
         },
-        async logout({commit}) {
+        async logout({commit, dispatch}) {
             commit('user', {
                 email: '',
                 profile: null,
@@ -437,6 +437,7 @@ export default {
             commit('services', []);
             commit('resetContent');
             commit('recentSearches', []);
+            await dispatch('stopPlaying');
         },
         async login({dispatch}) {
             let info = {

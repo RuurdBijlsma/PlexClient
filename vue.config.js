@@ -6,16 +6,22 @@ module.exports = {
         electronBuilder: {
             externals: ['wcjs-prebuilt'],
             nodeIntegration: true,
+            builderOptions: {
+                publish: ['github'],
+                artifactName: "${productName} Setup.${ext}",
+                appId: "dev.ruurd.plex",
+                productName: "PleX",
+            },
         }
     },
     publicPath: '/plex',
     pwa: {
-        name: 'Plex',
+        name: 'PleX',
         themeColor: '#e4703f',
         msTileColor: "#1b1845",
         manifestOptions: {
-            "short_name": "Plex",
-            "name": "Plex",
+            "short_name": "PleX",
+            "name": "PleX",
             "lang": "en",
             "description": "Browse your Plex library and watch your movies or tv shows.",
             "start_url": "/",

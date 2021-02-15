@@ -45,7 +45,7 @@
                 </v-menu>
             </div>
             <div class="header-right">
-                <search-field class="no-drag mr-2"/>
+                <search-field class="no-drag mr-2" v-if="canQuery"/>
                 <v-menu offset-y :close-on-content-click="false">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn
@@ -58,7 +58,7 @@
                         </v-btn>
                     </template>
                     <v-list dense>
-                        <v-list-item two-line v-if="$store.state.plex.user !== null">
+                        <v-list-item two-line v-if="$store.state.plex.server !== null && canQuery">
                             <v-list-item-avatar>
                                 <v-img :src="$store.state.plex.user.image"/>
                             </v-list-item-avatar>
