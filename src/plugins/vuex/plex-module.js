@@ -160,7 +160,7 @@ export default {
             });
             return (await getters.plexApi.postQuery(`/playQueues?${query}`)).MediaContainer;
         },
-        async setTimeline({dispatch, getters}, {ratingKey, key, playbackTime, duration, state, time,playQueueItemID}) {
+        async setTimeline({dispatch, getters}, {ratingKey, key, playbackTime, duration, state, time, playQueueItemID}) {
             let query = qs.stringify({
                 ratingKey,
                 key,
@@ -439,18 +439,19 @@ export default {
             commit('recentSearches', []);
             await dispatch('stopPlaying');
         },
-        async login({dispatch}) {
+        async login({dispatch, getters}) {
             let info = {
                 clientId: "RuurdPlexClient",
                 name: "Ruurd's Plex Client",
             }
-            let auth = await fetch(
-                `https://plex.tv/api/v2/pins?strong=true&X-Plex-Product=${info.name}&X-Plex-Client-Identifier=${info.clientId}`, {
-                    method: 'POST',
-                    headers: {
-                        accept: 'application/json',
-                    },
-                }).then(d => d.json());
+            let url = `https://plex.tv//api/v2/pins?strong=true&X-Plex-Product=${encodeURIComponent(info.name)}&X-Plex-Client-Identifier=${encodeURIComponent(info.clientId)}`;
+            let auth = await getters.betterFetch()(url, {
+                method: 'POST',
+                headers: {
+                    accept: 'application/json',
+                    Origin: 'http://localhost:8080',
+                },
+            }).then(t => t.json());
 
             const authUrl = 'https://app.plex.tv/auth#?' +
                 qs.stringify({
@@ -479,12 +480,13 @@ export default {
             else
                 commit('auth', auth);
 
-            auth = await fetch(`https://plex.tv/api/v2/pins/${auth.id}?` + qs.stringify({
+            auth = await getters.betterFetch()(`https://plex.tv/api/v2/pins/${auth.id}?` + qs.stringify({
                 code: auth.code,
                 'X-Plex-Client-Identifier': auth.clientIdentifier,
             }), {
                 headers: {
                     accept: 'application/json',
+                    Origin: 'http://localhost:8080',
                 },
             }).then(d => d.json());
             if (auth.errors) {

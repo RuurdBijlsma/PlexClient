@@ -1,9 +1,9 @@
 import electron, {remote, shell} from 'electron'
 import path from "path";
-import http from "http";
-import qs from 'qs';
 
+const nodeFetch = window.require('node-fetch');
 const express = window.require('express');
+import http from 'http';
 
 export default {
     state: {
@@ -20,7 +20,9 @@ export default {
             state.pausedIcons = [prevIcon, playIcon, nextIcon];
         },
     },
-    getters: {},
+    getters: {
+        betterFetch: () => () => nodeFetch,
+    },
     actions: {
         async initializePlatform({state, commit, dispatch, getters, rootState}) {
             let playIcon = {

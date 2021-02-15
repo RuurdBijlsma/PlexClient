@@ -1,6 +1,6 @@
 {
   "name": "plex-client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "repository": "https://github.com/RuurdBijlsma/PlexClient",
   "author": "Ruurd Bijlsma <ruurd@bijlsma.dev>",
@@ -23,6 +23,7 @@
     "hls.js": "^0.14.17",
     "idb-keyval": "^5.0.2",
     "localforage": "^1.9.0",
+    "node-fetch": "^2.6.1",
     "plex-api": "^5.3.1",
     "public-ip": "^4.0.3",
     "qs": "^6.9.6",

@@ -4,7 +4,7 @@ module.exports = {
     ],
     pluginOptions: {
         electronBuilder: {
-            externals: ['wcjs-prebuilt'],
+            externals: ['wcjs-prebuilt', 'node-fetch'],
             nodeIntegration: true,
             builderOptions: {
                 publish: ['github'],

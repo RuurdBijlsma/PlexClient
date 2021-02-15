@@ -137,7 +137,7 @@ export default {
     components: {SearchField, PlexImage},
     methods: {
         async logoutAndRedirect() {
-            await this.logout();
+            this.logout().then();
             await this.$router.push('/settings');
         },
         ...mapActions(['closeWindow', 'minimizeWindow', 'logout']),

@@ -20,14 +20,14 @@ async function createWindow() {
     let icon = path.join(__static, process.env.WEBPACK_DEV_SERVER_URL ? 'img/icons/icon-dev.png' : 'img/icons/icon.png');
     // Create the browser window.
     const win = new BrowserWindow({
-        width: 1400,
-        height: 800,
+        width: 1700,
+        height: 900,
         frame: false,
         backgroundColor: '#1e1c1f',
         icon,
         autoHideMenuBar: true,
         webPreferences: {
-            // webSecurity:false,
+            webSecurity: true,
             enableRemoteModule: true,
             // Use pluginOptions.nodeIntegration, leave this alone
             // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -38,11 +38,14 @@ async function createWindow() {
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         // Load the url of the dev server if in development mode
         await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
-        if (!process.env.IS_TEST) win.webContents.openDevTools()
+        if (!process.env.IS_TEST)
+            win.webContents.openDevTools()
     } else {
         createProtocol('app')
         // Load the index.html when not in development
-        win.loadURL('app://./index.html')
+        win.loadURL('app://./index.html').then(() => {
+            // win.webContents.openDevTools()
+        })
     }
 }
 

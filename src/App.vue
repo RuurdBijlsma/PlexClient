@@ -80,10 +80,10 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Switch to bottom bar navigation for small screen
 // Implement server settings in settings (maybe steal settings layout from Plex)
 // Keyboard shortcuts
-// Auto updater in release build
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Auto updater in release build
 // Update timeline via api while item is being viewed
 // When item is watched, mark with watched with scrobble
 // playlist context support

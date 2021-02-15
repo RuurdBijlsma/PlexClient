@@ -1,6 +1,3 @@
-import qs from "qs";
-import {remote} from "electron";
-
 export default {
     state: {
         type: 'web',
@@ -9,7 +6,9 @@ export default {
     mutations: {
         channel: (state, channel) => state.channel = channel,
     },
-    getters: {},
+    getters: {
+        betterFetch: () => () => window.fetch,
+    },
     actions: {
         async closeWindow({}) {
         },
