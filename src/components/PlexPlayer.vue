@@ -317,10 +317,12 @@ export default {
     height: 40px;
     backdrop-filter: blur(30px) saturate(80%) brightness(80%);
     transition: opacity 0.1s;
+    cursor: auto !important;
 }
 
 .hide-controls .player-app-bar {
-    opacity: 0;
+    opacity: 0.7;
+    backdrop-filter: blur(10px) saturate(90%) brightness(90%);
 }
 
 .electron .player-app-bar {

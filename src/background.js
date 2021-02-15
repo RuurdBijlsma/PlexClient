@@ -23,7 +23,7 @@ async function createWindow() {
         width: 1700,
         height: 900,
         frame: false,
-        backgroundColor: '#1e1c1f',
+        backgroundColor: '#010001',
         icon,
         autoHideMenuBar: true,
         webPreferences: {
