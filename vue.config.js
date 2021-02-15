@@ -8,7 +8,7 @@ module.exports = {
             nodeIntegration: true,
             builderOptions: {
                 publish: ['github'],
-                artifactName: "${productName} Setup.${ext}",
+                artifactName: "${productName} Setup ${version}.${ext}",
                 appId: "dev.ruurd.plex",
                 productName: "PleX",
             },
