@@ -87,20 +87,20 @@
             </div>
             <div class="bottom-controls ml-4 mt-1">
                 <div class="left-control-buttons" @mousedown.stop="empty">
-                    <v-btn icon small @click="skip(false)">
+                    <v-btn icon small @click="skip(false)" :disabled="!canSkipBackwards">
                         <v-icon small>mdi-skip-previous</v-icon>
                     </v-btn>
-                    <v-btn icon small @click="seekBy(-10)">
+                    <v-btn icon small @click="seekBy(-10)" :disabled="!canSeekLeft">
                         <v-icon small>mdi-skip-backward</v-icon>
                     </v-btn>
                     <v-btn icon @click="togglePlay" :loading="srcLoading">
                         <v-icon v-if="playing">mdi-pause</v-icon>
                         <v-icon v-else>mdi-play</v-icon>
                     </v-btn>
-                    <v-btn icon small @click="seekBy(10)">
+                    <v-btn icon small @click="seekBy(10)" :disabled="!canSeekRight">
                         <v-icon small>mdi-skip-forward</v-icon>
                     </v-btn>
-                    <v-btn icon small @click="skip(true)">
+                    <v-btn icon small @click="skip(true)" :disabled="!canSkipForwards">
                         <v-icon small>mdi-skip-next</v-icon>
                     </v-btn>
                     <v-btn icon small @click="stopPlaying">
@@ -279,7 +279,10 @@ export default {
         bigScreen() {
             return this.$route.query.player === '1';
         },
-        ...mapGetters(['usePlayer', 'videoWidth', 'videoHeight']),
+        ...mapGetters([
+            'usePlayer', 'videoWidth', 'videoHeight', 'canSkipBackwards',
+            'canSkipForwards', 'canSeekLeft', 'canSeekRight'
+        ]),
         ...mapState({
             controlsHeight: state => state.media.controlsHeight,
             windowWidth: state => state.windowWidth,

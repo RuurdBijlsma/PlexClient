@@ -88,6 +88,11 @@ export default {
         repeat: (state, repeat) => state.repeat = repeat,
     },
     getters: {
+        canSeekLeft: state => state.currentTime > 10,
+        canSeekRight: state => state.currentTime + 10 < state.duration,
+        canSkipBackwards: state => state.queueIndex > 0,
+        canSkipForwards: state => state.queueIndex < state.context.queue.Metadata.length - 1,
+        queueIndex: state => state.context.queue.Metadata.findIndex(i => i.playQueueItemID === state.context.item.playQueueItemID),
         itemTimelineConfig: state => item => ({
             ratingKey: item.ratingKey,
             key: item.key,
@@ -134,7 +139,7 @@ export default {
             await dispatch('markStop', item);
         },
         async skip({state, commit, dispatch, getters}, forward = true) {
-            let currentIndex = state.context.queue.Metadata.findIndex(i => i.playQueueItemID === state.context.item.playQueueItemID);
+            let currentIndex = getters.queueIndex;
             console.log("currentIndex", currentIndex);
             let nextInQueue = state.context.queue.Metadata[currentIndex + (forward ? 1 : -1)];
             console.log("next in queue", nextInQueue);

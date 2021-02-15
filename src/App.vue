@@ -61,6 +61,9 @@ import PlexPlayer from "@/components/PlexPlayer";
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
+// Implement show queue button
+
+// Soms is de duration 2:00:00 zonder dat dat het echt is
 
 // Fix layout for small window sizes
 // Plex subtitles, how do they work
