@@ -65,6 +65,7 @@
                     <v-slider @click:prepend="toggleMute"
                               :max="1" :min="0" :step="0.01"
                               dense
+                              :color="bigScreen ? 'softForeground' : 'primary'"
                               v-model="$store.state.media.volume"
                               :prepend-icon="volumeIcon"
                               hide-details="auto" class="plex-volume-slider"></v-slider>
