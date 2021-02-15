@@ -1,3 +1,5 @@
+import Vue from "vue";
+
 export default {
     state: {
         context: {
@@ -9,9 +11,14 @@ export default {
             },
             type: '',
             item: null,
-            queueLoading: false,
-            queue: [],
-            shuffledQueue: [],
+            queue: {
+                index: 0,
+                length: 0,
+                loading: false,
+                playQueueSelectedItemID: -1,
+                playQueueID: -1,
+                Metadata: [],
+            },
         },
         volume: 1,
         muted: false,
@@ -38,7 +45,6 @@ export default {
             state.srcLoading = false;
             state.videoRatio = 16 / 9;
             state.buffers = [];
-
             state.context = {
                 key: '',
                 keys: {
@@ -48,14 +54,20 @@ export default {
                 },
                 type: '',
                 item: null,
-                queueLoading: false,
-                queue: null,
+                queue: {
+                    index: 0,
+                    length: 0,
+                    loading: false,
+                    playQueueSelectedItemID: -1,
+                    playQueueID: -1,
+                    Metadata: [],
+                },
             };
         },
         context: (state, {key, type, keys, queueLoading = true}) => {
             // If the queue isn't already loaded for this context, set loading to true
             if (state.context.key !== key) {
-                state.context.queueLoading = queueLoading;
+                state.context.queue.loading = queueLoading;
             }
             if (keys) {
                 state.context.keys.show = keys.show;
@@ -73,9 +85,15 @@ export default {
             state.playOnLoad = play;
         },
         queue: (state, queue) => {
-            state.context.queueLoading = false;
-            state.context.queue = queue
+            state.context.queue.loading = false;
+            state.context.queue.length = queue.Metadata.length;
+            state.context.queue.Metadata = queue.Metadata;
+            state.context.queue.playQueueSelectedItemID = queue.playQueueSelectedItemID;
+            state.context.queue.playQueueID = queue.playQueueID;
+            state.context.queue.index = queue.Metadata
+                .findIndex(i => i.playQueueItemID === queue.playQueueSelectedItemID);
         },
+        queueIndex: (state, index) => state.context.queue.index = index,
         currentTime: (state, currentTime) => state.currentTime = currentTime,
         duration: (state, duration) => state.duration = duration,
         volume: (state, volume) => state.volume = volume,
@@ -90,9 +108,8 @@ export default {
     getters: {
         canSeekLeft: state => state.currentTime > 10,
         canSeekRight: state => state.currentTime + 10 < state.duration,
-        canSkipBackwards: state => state.queueIndex > 0,
-        canSkipForwards: state => state.queueIndex < state.context.queue.Metadata.length - 1,
-        queueIndex: state => state.context.queue.Metadata.findIndex(i => i.playQueueItemID === state.context.item.playQueueItemID),
+        canSkipBackwards: state => state.context.queue.index > 0,
+        canSkipForwards: state => state.context.queue.index < state.context.queue.length - 1,
         itemTimelineConfig: state => item => ({
             ratingKey: item.ratingKey,
             key: item.key,
@@ -139,12 +156,15 @@ export default {
             await dispatch('markStop', item);
         },
         async skip({state, commit, dispatch, getters}, forward = true) {
-            let currentIndex = getters.queueIndex;
+            let currentIndex = state.context.queue.index;
             console.log("currentIndex", currentIndex);
-            let nextInQueue = state.context.queue.Metadata[currentIndex + (forward ? 1 : -1)];
+            let newIndex = currentIndex + (forward ? 1 : -1);
+            newIndex = (newIndex + state.context.queue.length * 2) % state.context.queue.length;
+            let nextInQueue = state.context.queue.Metadata[newIndex];
             console.log("next in queue", nextInQueue);
             if (!nextInQueue) return;
             commit('item', {item: nextInQueue, play: true});
+            commit('queueIndex', newIndex);
             await dispatch('setTimeline', {
                 ...getters.itemTimelineConfig(nextInQueue),
                 state: 'playing',
