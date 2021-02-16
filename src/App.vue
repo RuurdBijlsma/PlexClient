@@ -63,6 +63,7 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Make MediaItem work with more item types
 // Implement show queue button
 
+// Hls pauzeert soms random
 // vlc volume bug
 // Loading /shows for the first time doesn't load
 // Soms is de duration 2:00:00 zonder dat dat het echt is
