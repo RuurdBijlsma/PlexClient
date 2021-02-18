@@ -63,7 +63,7 @@
                 </div>
                 <div class="plex-volume mr-5" @mousedown.stop="empty" @wheel.prevent="volumeWheel">
                     <v-slider @click:prepend="toggleMute"
-                              :max="1" :min="0" :step="0.01"
+                              :max="usePlayer === 'vlc' ? 2 : 1" :min="0" :step="0.01"
                               dense
                               :color="bigScreen ? 'softForeground' : 'primary'"
                               v-model="$store.state.media.volume"
@@ -112,7 +112,7 @@
                     <v-btn icon small plain>
                         <v-icon small>mdi-repeat</v-icon>
                     </v-btn>
-                    <v-btn icon small plain>
+                    <v-btn icon :color="shuffle ? 'primary' : 'default'" small plain @click="toggleShuffle">
                         <v-icon small>mdi-shuffle</v-icon>
                     </v-btn>
                     <v-btn icon small plain>
@@ -246,7 +246,7 @@ export default {
         toggleMute() {
             this.$store.commit('muted', !this.muted);
         },
-        ...mapActions(['markWatched', 'skip', 'stopPlaying', 'minimizeWindow', 'closeWindow']),
+        ...mapActions(['markWatched', 'skip', 'stopPlaying', 'minimizeWindow', 'closeWindow', 'toggleShuffle']),
     },
     computed: {
         progressBuffers() {
@@ -275,6 +275,8 @@ export default {
         volumeIcon() {
             if (this.muted)
                 return 'mdi-volume-mute';
+            if(this.volume < 0.5)
+                return 'mdi-volume-low';
             return 'mdi-volume-high';
         },
         bigScreen() {
@@ -296,6 +298,7 @@ export default {
             currentTime: state => state.media.currentTime,
             srcLoading: state => state.media.srcLoading,
             item: state => state.media.context.item,
+            shuffle: state=>state.media.shuffle,
         }),
     },
     watch: {

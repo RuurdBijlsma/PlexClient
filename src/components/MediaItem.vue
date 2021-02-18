@@ -161,12 +161,13 @@ export default {
 
             if (this.sortProp !== null && this.sortProp !== 'titleSort') {
                 let sortValue = this.item[this.sortProp];
-                subtitles = sortValue === undefined ? [] : [{
+                subtitles = [{
                     rating: () => `⭐ ${sortValue * 10}%`,
                     audienceRating: () => `🌟 ${sortValue * 10}%`,
                     originallyAvailableAt: () => Utils.niceDate(new Date(sortValue)),
                     lastViewedAt: () => ta.ago(new Date(sortValue * 1000)),
                     duration: () => Utils.niceTime(new Date(sortValue)),
+                    unviewedLeafCount: () => (this.item.leafCount - this.item.viewedLeafCount) + ' unwatched episodes',
                     addedAt: () => ta.ago(new Date(sortValue * 1000)),
                 }[this.sortProp]?.() ?? sortValue]
             }

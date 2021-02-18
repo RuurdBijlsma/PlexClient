@@ -135,7 +135,22 @@ export default {
         // ----------------------------------------------------------------------- //
         // ------------------------- Local plex API ------------------------------ //
         // ----------------------------------------------------------------------- //
-        async getQueue({dispatch, commit, getters}, queueKey) {
+        async shuffleQueue({dispatch, commit, getters}, {queueKey, shuffle = true}) {
+            let query = qs.stringify({
+                repeat: 0,
+                own: 1,
+                includeChapters: 1,
+                includeMarkers: 1,
+                includeGeolocation: 1,
+                includeExternalMedia: 1,
+            });
+            if (shuffle) {
+                return (await getters.plexApi.putQuery(`/playQueues/${queueKey}/shuffle?${query}`)).MediaContainer;
+            } else {
+                return (await getters.plexApi.putQuery(`/playQueues/${queueKey}/unshuffle?${query}`)).MediaContainer;
+            }
+        },
+        async getQueue({dispatch, rootState, commit, getters}, queueKey) {
             let query = qs.stringify({
                 repeat: 0,
                 own: 1,

@@ -13,14 +13,14 @@
         }" v-html="statusText"/>
         <loading-ring class="loading-ring" :style="{opacity: buffering ? 1 : 0}"/>
         <div class="canvas-center" :style="{
-            backgroundImage: poster === '' ? 'none' : `url(${poster})`,
+            backgroundImage: !isNaN(duration) || poster === '' ? 'none' : `url(${poster})`,
             backgroundSize: coverPoster ? 'cover' : 'contain',
         }">
             <canvas
                 :style="{
                     width: canvasBounds.width + 'px',
                     height: canvasBounds.height + 'px',
-                    opacity: poster === '' || firstPlayLoaded ? 1 : 0,
+                    opacity: !isNaN(duration) || poster === '' || firstPlayLoaded ? 1 : 0,
                 }"
                 class="canvas"
                 ref="canvas"

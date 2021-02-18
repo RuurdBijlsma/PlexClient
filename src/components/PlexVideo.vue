@@ -19,6 +19,7 @@
                    enable-context-menu
                    autoplay
                    :poster="artUrl"
+                   cover-poster
                    :dark="$vuetify.theme.dark"/>
         <video ref="hls"
                :autoplay="playOnLoad"
@@ -116,9 +117,12 @@ export default {
                 if (this.hlsPlayer !== null) {
                     console.warn("this shouldnt happen", this.hlsPlayer, "hlsplayer is NOT null")
                 }
+                let startPosition = this.item.viewOffset / 1000;
+                if (isNaN(startPosition))
+                    startPosition = this.currentTime;
 
                 this.hlsPlayer = new Hls({
-                    startPosition: this.currentTime,
+                    startPosition: startPosition,
                     progressive: true,
                     lowLatencyMode: true,
                     maxBufferLength: 120,
@@ -185,12 +189,14 @@ export default {
             console.log('duration', this.duration);
             this.$store.commit('videoRatio', this.player.videoWidth / this.player.videoHeight);
             this.hidePoster = true;
+            console.log("VIEW OFFSET", this.item, this.item.viewOffset);
+            if (this.usePlayer === 'vlc')
+                this.$store.commit('currentTime', this.item.viewOffset / 1000 ?? this.currentTime);
             setTimeout(() => this.$store.commit('playOnLoad', false), 100);
         },
         volumeChange() {
-            let newVolume = this.usePlayer === 'vlc' ? this.player?.volume / 2 : this.player?.volume;
             this.dontWatchVolume = true;
-            this.$store.commit('volume', newVolume);
+            this.$store.commit('volume', this.player?.volume);
         },
         timeUpdate() {
             if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime)) {
@@ -286,7 +292,7 @@ export default {
         },
         volume(n, o) {
             if (this.dontWatchVolume) return this.dontWatchVolume = false;
-            if (n !== o) this.player.volume = this.usePlayer === 'vlc' ? n * 2 : n;
+            if (n !== o) this.player.volume = n;
         },
         muted(n, o) {
             if (n !== o) this.player.muted = this.muted;

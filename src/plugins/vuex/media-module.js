@@ -150,6 +150,15 @@ export default {
         },
     },
     actions: {
+        async toggleShuffle({state, dispatch, commit}) {
+            commit('shuffle', !state.shuffle);
+            let nextQueue = await dispatch('shuffleQueue', {
+                queueKey: state.context.queue.playQueueID,
+                shuffle: state.shuffle,
+            });
+            console.log('toggleShuffle queue', nextQueue);
+            commit('queue', nextQueue);
+        },
         async stopPlaying({commit, dispatch, state}) {
             let item = state.context.item;
             commit('clearContext');

@@ -55,16 +55,13 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
-// shuffle
 // Ask to resume from previous position when playing item
-// Implement video player (video for web, vlc-video for electron) (big work)
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
 // Make MediaItem work with more item types
 // Implement show queue button
 
 // Hls pauzeert soms random
-// vlc volume bug
 // Loading /shows for the first time doesn't load
 // Soms is de duration 2:00:00 zonder dat dat het echt is
 
@@ -85,6 +82,9 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// vlc volume bug
+// Implement video player (video for web, vlc-video for electron) (big work)
+// shuffle
 // Auto updater in release build
 // Update timeline via api while item is being viewed
 // When item is watched, mark with watched with scrobble

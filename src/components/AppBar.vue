@@ -7,7 +7,7 @@
                          :style="{backgroundImage: `url(img/plex-text-${$vuetify.theme.dark ? 'white' : 'black'}.png)`}"
                          class="text-logo"/>
             <div class="links ml-2 mr-2" v-if="canQuery">
-                <v-btn plain to="/?player=0" exact class="no-drag no-cap">Home</v-btn>
+                <v-btn :plain="$route.name!=='Home' || $route.fullPath === '/'" :text="$route.name==='Home'" to="/" exact class="no-drag no-cap">Home</v-btn>
                 <v-btn plain class="no-drag no-cap" :to="`/explore/${section.key}?player=0`"
                        v-for="section in sections">
                     {{ section.title }}
