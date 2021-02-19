@@ -190,8 +190,13 @@ export default {
             this.$store.commit('videoRatio', this.player.videoWidth / this.player.videoHeight);
             this.hidePoster = true;
             console.log("VIEW OFFSET", this.item, this.item.viewOffset);
-            if (this.usePlayer === 'vlc')
+            if (this.usePlayer === 'vlc') {
                 this.$store.commit('currentTime', this.item.viewOffset / 1000 ?? this.currentTime);
+                if (this.playOnLoad)
+                    this.player.play();
+                else
+                    this.player.pause();
+            }
             setTimeout(() => this.$store.commit('playOnLoad', false), 100);
         },
         volumeChange() {

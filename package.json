@@ -1,6 +1,6 @@
 {
   "name": "plex-client",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "repository": "https://github.com/RuurdBijlsma/PlexClient",
   "description": "Browse your Plex library and watch your movies or tv shows.",

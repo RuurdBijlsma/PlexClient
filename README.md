@@ -1,5 +1,7 @@
 # PleX
 
+For now VLC is required to be in PATH for this the Electron version to work. Also, Windows 64bit only.
+
 ### Home
 ![Home](https://github.com/ruurdbijlsma/PlexClient/blob/master/.gh/home.png?raw=true)
 

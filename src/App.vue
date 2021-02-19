@@ -55,6 +55,7 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
+// make work on https
 // Ask to resume from previous position when playing item
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
