@@ -24,7 +24,7 @@ module.exports = {
             "name": "PleX",
             "lang": "en",
             "description": "Browse your Plex library and watch your movies or tv shows.",
-            "start_url": "/",
+            "start_url": "./",
             "background_color": "#1b1845",
             "theme_color": "#e4703f",
             "dir": "ltr",

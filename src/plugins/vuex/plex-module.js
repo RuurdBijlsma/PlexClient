@@ -70,7 +70,7 @@ export default {
         plexApi: (state, getters, rootState) => {
             let electron = rootState.platform.type === 'electron';
             let connections = getters.serverConnections(state.server);
-            console.log('connections', connections);
+            console.log('connections', connections, connections.map(c => c.uri));
             let connection = connections?.[0];
             let hostname = electron ? connection.address : connection.uri.split('//')[1].split(':')[0];
             console.log("hostname", hostname);
@@ -422,7 +422,11 @@ export default {
         },
         async updateServices({state, commit, dispatch, getters}) {
             // this is how we get servers and players connected to this account
-            let services = await dispatch('tvQuery', {endpoint: 'resources'});
+            let https = location.protocol.startsWith('https');
+            let services = await dispatch('tvQuery', {
+                endpoint: 'resources',
+                extraQuery: {includeHttps: +https, includeRelay: +https}
+            });
             commit('services', services);
             if (state.server === null && getters.tvServers.length > 0) {
                 commit('server', getters.tvServers[0]);

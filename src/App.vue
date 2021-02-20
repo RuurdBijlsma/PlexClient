@@ -213,7 +213,7 @@ export default {
                 return false;
             return this.$route.query.player === '1';
         },
-        ...mapGetters(['themeColors']),
+        ...mapGetters(['themeColors', 'canQuery']),
         ...mapState({
             sections: state => state.plex.content.sections,
             platform: state => state.platform.type,

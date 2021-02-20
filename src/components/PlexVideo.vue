@@ -109,12 +109,14 @@ export default {
     },
     methods: {
         updateAudioPlayer() {
-            let ap = this.$refs.audioPlayer;
-            let playing = this.playing && !this.srcLoading;
-            if (playing && ap.paused)
-                ap.play();
-            else if (!playing && !ap.paused)
-                ap.pause();
+            if (this.usePlayer === 'vlc') {
+                let ap = this.$refs.audioPlayer;
+                let playing = this.playing && !this.srcLoading;
+                if (playing && ap.paused)
+                    ap.play();
+                else if (!playing && !ap.paused)
+                    ap.pause();
+            }
         },
         getPlayer() {
             return this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
@@ -203,12 +205,15 @@ export default {
             this.hidePoster = true;
             console.log("VIEW OFFSET", this.item, this.item.viewOffset);
             if (this.usePlayer === 'vlc') {
-                this.$store.commit('currentTime', this.item.viewOffset / 1000 ?? this.currentTime);
+                let startPosition = this.item.viewOffset / 1000;
+                if (isNaN(startPosition))
+                    startPosition = this.currentTime;
+                this.$store.commit('currentTime', startPosition);
                 if (this.playOnLoad) {
-                    this.$refs.audioPlayer.play();
+                    this.$refs.audioPlayer?.play?.();
                     this.player.play();
                 } else {
-                    this.$refs.audioPlayer.pause();
+                    this.$refs.audioPlayer?.pause?.();
                     this.player.pause();
                 }
             }
@@ -312,10 +317,10 @@ export default {
             if (this.dontWatchPlaying) return this.dontWatchPlaying = false;
             if (n !== o) {
                 if (n) {
-                    this.$refs.audioPlayer.play();
+                    this.$refs.audioPlayer?.play?.();
                     this.player.play();
                 } else {
-                    this.$refs.audioPlayer.pause();
+                    this.$refs.audioPlayer?.pause?.();
                     this.player.pause();
                 }
             }
