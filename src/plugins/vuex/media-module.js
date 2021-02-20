@@ -95,7 +95,7 @@ export default {
         },
         queueIndex: (state, index) => state.context.queue.index = index,
         currentTime: (state, currentTime) => {
-            if(state.duration !== Infinity && !isNaN(state.duration)){
+            if (state.duration !== Infinity && !isNaN(state.duration) && !isNaN(currentTime) && currentTime !== Infinity) {
                 navigator?.mediaSession?.setPositionState?.({
                     duration: state.duration,
                     playbackRate: 1,
@@ -262,6 +262,9 @@ export default {
             });
             await dispatch('setMetadata', item);
         },
+        async updateMediaData({dispatch, state}) {
+            dispatch('setMetadata', state.context.item);
+        },
         async setMetadata({dispatch, getters, state, commit}, item) {
             console.log('setting metadata');
             let subtitle = item.type === 'movie' ? item.year : item.grandparentTitle;
@@ -281,7 +284,7 @@ export default {
                 src: getters.transcodeImage({
                     url: art,
                     width: s,
-                    height:s,
+                    height: s,
                 }),
                 sizes: `${s}x${s}`,
                 type: 'image/png',

@@ -39,6 +39,8 @@
                v-else-if="usePlayer === 'hls'"
                class="video"/>
         <audio :src="`empty.mp3`" v-if="usePlayer === 'vlc'" loop
+               @play="updateMediaData"
+               muted
                ref="audioPlayer"/>
     </div>
 </template>
@@ -235,7 +237,7 @@ export default {
             }
             this.$store.commit('buffers', buffers);
         },
-        ...mapActions(['markWatched', 'updateTimeline']),
+        ...mapActions(['markWatched', 'updateTimeline', 'updateMediaData']),
     },
     computed: {
         artUrl() {
