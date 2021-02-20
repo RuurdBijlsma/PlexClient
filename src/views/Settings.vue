@@ -46,7 +46,7 @@
                 <v-card-text>
                     <div>Created at: <span class="server-value">{{ toDateString(tvServer.createdAt) }}</span></div>
                     <div>Public address: <span class="server-value">{{ tvServer.publicAddress }}</span></div>
-                    <div>Port: <span class="server-value">{{ getServerPort(tvServer) }}</span></div>
+                    <div>Port: <span class="server-value">{{ serverPort(tvServer) }}</span></div>
                     <div>Currently local:
                         <span class="server-value" v-if="tvServer.publicAddress === publicIp">
                             <v-icon small color="success">mdi-lan</v-icon>
@@ -102,7 +102,7 @@ export default {
             'updateServices', 'resetPlexLogin', 'updateSections']),
     },
     computed: {
-        ...mapGetters(['tvServers', 'tvLoggedIn', "getServerPort", 'canQuery']),
+        ...mapGetters(['tvServers', 'tvLoggedIn', "serverPort", 'canQuery']),
         ...mapState({
             server: state => state.plex.server,
             user: state => state.plex.user,

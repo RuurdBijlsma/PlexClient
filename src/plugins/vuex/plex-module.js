@@ -46,10 +46,17 @@ export default {
         auth: (state, auth) => state.auth = auth,
     },
     getters: {
-        getServerPort: () => server => server?.connections?.slice()
+        serverConnections: (s, g, rootState) => server => server?.connections?.slice()
             ?.sort((a, b) => a?.relay - b?.relay)
-            ?.sort((a, b) => b?.local - a?.local)?.[0]?.port,
-        port: (state, getters) => getters.getServerPort(state.server),
+            ?.sort((a, b) => b?.local - a?.local)
+            ?.sort((a, b) => {
+                if (rootState.platform.type === 'electron')
+                    return 0;
+                let protocol = location.protocol.slice(0, -1);
+                return (b?.protocol === protocol) - (a?.protocol === protocol);
+            }),
+        serverPort: (_, getters) => server => getters.serverConnections(server)?.[0]?.port,
+        port: (state, getters) => getters.serverPort(state.server),
         token: state => state.server?.accessToken,
         canQuery: (state, getters) => getters.port &&
             state.server.publicAddress &&
@@ -60,11 +67,25 @@ export default {
         tvLoggedIn: (state, getters) => getters.tvAuth !== null &&
             getters.tvAuth.authToken !== null &&
             new Date(getters.tvAuth.expiresAt) > new Date(),
-        plexApi: (state, getters) => {
+        plexApi: (state, getters, rootState) => {
+            let electron = rootState.platform.type === 'electron';
+            let connections = getters.serverConnections(state.server);
+            console.log('connections', connections);
+            let connection = connections?.[0];
+            let hostname = electron ? connection.address : connection.uri.split('//')[1].split(':')[0];
+            console.log("hostname", hostname);
             let api = new PlexAPI({
-                hostname: state.server?.publicAddress,
-                port: getters.port,
+                hostname,
+                port: connection?.port,
                 token: getters.token,
+                https: location.protocol.startsWith('https'),
+                options: {
+                    'identifier': 'RuurdPlexClient',
+                    'product': electron ? 'PleX Electron' : 'PleX Web',
+                    'version': ' 1.0',
+                    'deviceName': 'PleX device',
+                    'platform': 'Chrome',
+                },
             });
             console.log(api);
             return api;
@@ -454,12 +475,22 @@ export default {
             commit('recentSearches', []);
             await dispatch('stopPlaying');
         },
-        async login({dispatch, getters}) {
+        async login({dispatch, getters, rootState}) {
             let info = {
                 clientId: "RuurdPlexClient",
                 name: "Ruurd's Plex Client",
             }
-            let url = `https://plex.tv//api/v2/pins?strong=true&X-Plex-Product=${encodeURIComponent(info.name)}&X-Plex-Client-Identifier=${encodeURIComponent(info.clientId)}`;
+            let url = `https://plex.tv//api/v2/pins?${qs.stringify({
+                strong: true,
+                'X-Plex-Product': info.name,
+                'X-Plex-Client-Identifier': info.clientId,
+                'X-Plex-Platform': rootState.platform.type,
+                'X-Plex-Platform-Version': '1.0.0',
+                'X-Plex-Provides': 'player',
+                'X-Plex-Version': '1.0.0',
+                'X-Plex-Device': rootState.platform.type === 'web' ? 'browser' : 'Electron',
+                'X-Plex-Device-Name': rootState.platform.type === 'web' ? 'PleX (Browser)' : 'PleX (Electron)',
+            })}`
             let auth = await getters.betterFetch()(url, {
                 method: 'POST',
                 headers: {

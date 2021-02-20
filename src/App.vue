@@ -174,6 +174,8 @@ export default {
             if (this.$route.path !== '/settings' && this.server === null)
                 this.$router.push('/settings');
             if (this.canQuery) {
+                if (this.activeItem)
+                    this.setMetadata(this.activeItem);
                 this.updateSections();
                 this.updatePlaylists()
             }
@@ -202,7 +204,7 @@ export default {
             if (e.key === 'r' && e.ctrlKey)
                 location.reload();
         },
-        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections', 'updatePlaylists']),
+        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections', 'updatePlaylists', 'setMetadata']),
     },
     computed: {
         bigScreen() {
@@ -212,6 +214,7 @@ export default {
         },
         ...mapGetters(['themeColors']),
         ...mapState({
+            sections: state => state.plex.content.sections,
             platform: state => state.platform.type,
             server: state => state.plex.server,
             scrollY: state => state.scrollY,

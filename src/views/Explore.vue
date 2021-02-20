@@ -70,7 +70,7 @@ export default {
         }),
     },
     watch: {
-        key() {
+        sectionKey() {
             this.init();
         },
     }

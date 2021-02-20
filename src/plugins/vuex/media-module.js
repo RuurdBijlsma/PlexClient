@@ -94,7 +94,14 @@ export default {
                 .findIndex(i => i.playQueueItemID === queue.playQueueSelectedItemID);
         },
         queueIndex: (state, index) => state.context.queue.index = index,
-        currentTime: (state, currentTime) => state.currentTime = currentTime,
+        currentTime: (state, currentTime) => {
+            navigator?.mediaSession?.setPositionState?.({
+                duration: state.duration,
+                playbackRate: 1,
+                position: currentTime,
+            });
+            state.currentTime = currentTime
+        },
         duration: (state, duration) => state.duration = duration,
         volume: (state, volume) => state.volume = volume,
         muted: (state, muted) => state.muted = muted,
@@ -172,7 +179,7 @@ export default {
             let nextInQueue = state.context.queue.Metadata[newIndex];
             console.log("next in queue", nextInQueue);
             if (!nextInQueue) return;
-            commit('item', {item: nextInQueue, play: true});
+            dispatch('commitItem', {item: nextInQueue, play: true});
             commit('queueIndex', newIndex);
             await dispatch('setTimeline', {
                 ...getters.itemTimelineConfig(nextInQueue),
@@ -243,11 +250,90 @@ export default {
                     episode: playItem.ratingKey
                 } : {},
             });
-            commit('item', {
-                item: playItem,
-                play: true,
-            });
+            dispatch('commitItem', {item: playItem});
             console.log(queue);
+        },
+        async commitItem({commit, dispatch}, {item, play = true}) {
+            commit('item', {
+                item,
+                play,
+            });
+            await dispatch('setMetadata', item);
+        },
+        async setMetadata({dispatch, getters, state, commit}, item) {
+            console.log('setting metadata');
+            let subtitle = item.type === 'movie' ? item.year : item.grandparentTitle;
+            document.title = 'PleX • ' + subtitle + ' - ' + item.title;
+
+            if (!('mediaSession' in navigator))
+                return;
+
+            let artwork = [{
+                src: getters.notFoundImg(item),
+                type: 'image/png',
+                sizes: '512x512',
+            }];
+            let art = item.type === 'movie' ? (item.thumb ?? item.art) : (item.thumb ?? item.art);
+            let sizes = [128, 512, 1024];
+            artwork = sizes.map(s => ({
+                src: getters.transcodeImage({
+                    url: art,
+                    width: s,
+                    height:s,
+                }),
+                sizes: `${s}x${s}`,
+                type: 'image/png',
+            }))
+
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: item.title,
+                artist: subtitle,
+                album: item.type === 'movie' ? '' : item.parentTitle,
+                artwork
+            });
+
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                dispatch('skip', false);
+            });
+
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                dispatch('skip', true);
+            });
+
+            let defaultSkipTime = 10;
+            navigator.mediaSession.setActionHandler('seekbackward', (event) => {
+                const skipTime = event.seekOffset || defaultSkipTime;
+                commit('currentTime', Math.max(state.currentTime - skipTime, 0));
+            });
+
+            navigator.mediaSession.setActionHandler('seekforward', (event) => {
+                const skipTime = event.seekOffset || defaultSkipTime;
+                commit('currentTime', Math.min(state.currentTime + skipTime, state.duration));
+            });
+
+            navigator.mediaSession.setActionHandler('play', () => {
+                commit('playing', true);
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+                commit('playing', false);
+            });
+
+            try {
+                navigator.mediaSession.setActionHandler('stop', () => {
+                    dispatch('stopPlaying');
+                });
+            } catch (error) {
+                console.warn('Warning! The "stop" media session action is not supported.');
+            }
+
+            try {
+                navigator.mediaSession.setActionHandler('seekto', (event) => {
+                    commit('currentTime', event.seekTime);
+                });
+            } catch (error) {
+                console.warn('Warning! The "seekto" media session action is not supported.');
+            }
         },
     },
 }
