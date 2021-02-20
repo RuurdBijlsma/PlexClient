@@ -55,7 +55,8 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
-// make work on https
+// add play pause next prev buttons in taskbar preview Electron
+// make work on https (cert name invalid on plex.ruurd.dev)
 // Ask to resume from previous position when playing item
 // some components could be merged (show & movie)
 // make sure everything that should be clickable is clickable (every time a show title is mentioned, etc.)
@@ -63,7 +64,6 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Implement show queue button
 
 // Hls pauzeert soms random
-// Loading /shows for the first time doesn't load
 // Soms is de duration 2:00:00 zonder dat dat het echt is
 
 // Fix layout for small window sizes
@@ -83,6 +83,7 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Loading /shows for the first time doesn't load
 // vlc volume bug
 // Implement video player (video for web, vlc-video for electron) (big work)
 // shuffle
