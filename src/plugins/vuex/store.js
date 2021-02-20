@@ -14,6 +14,7 @@ console.log("is electron?", isElectron);
 
 const vuexLocal = new VuexPersistence({
     reducer: state => ({
+        uiScale: state.uiScale,
         plex: {
             content: state.plex.content,
             publicIp: state.plex.publicIp,
