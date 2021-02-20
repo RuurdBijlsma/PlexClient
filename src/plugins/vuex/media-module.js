@@ -95,11 +95,13 @@ export default {
         },
         queueIndex: (state, index) => state.context.queue.index = index,
         currentTime: (state, currentTime) => {
-            navigator?.mediaSession?.setPositionState?.({
-                duration: state.duration,
-                playbackRate: 1,
-                position: currentTime,
-            });
+            if(state.duration !== Infinity && !isNaN(state.duration)){
+                navigator?.mediaSession?.setPositionState?.({
+                    duration: state.duration,
+                    playbackRate: 1,
+                    position: currentTime,
+                });
+            }
             state.currentTime = currentTime
         },
         duration: (state, duration) => state.duration = duration,

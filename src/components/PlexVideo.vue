@@ -38,6 +38,8 @@
                }"
                v-else-if="usePlayer === 'hls'"
                class="video"/>
+        <audio :src="`empty.mp3`" v-if="usePlayer === 'vlc'" loop
+               ref="audioPlayer"/>
     </div>
 </template>
 
@@ -104,6 +106,14 @@ export default {
         this.initSrc();
     },
     methods: {
+        updateAudioPlayer() {
+            let ap = this.$refs.audioPlayer;
+            let playing = this.playing && !this.srcLoading;
+            if (playing && ap.paused)
+                ap.play();
+            else if (!playing && !ap.paused)
+                ap.pause();
+        },
         getPlayer() {
             return this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
         },
@@ -192,10 +202,13 @@ export default {
             console.log("VIEW OFFSET", this.item, this.item.viewOffset);
             if (this.usePlayer === 'vlc') {
                 this.$store.commit('currentTime', this.item.viewOffset / 1000 ?? this.currentTime);
-                if (this.playOnLoad)
+                if (this.playOnLoad) {
+                    this.$refs.audioPlayer.play();
                     this.player.play();
-                else
+                } else {
+                    this.$refs.audioPlayer.pause();
                     this.player.pause();
+                }
             }
             setTimeout(() => this.$store.commit('playOnLoad', false), 100);
         },
@@ -267,6 +280,7 @@ export default {
             muted: state => state.media.muted,
             playOnLoad: state => state.media.playOnLoad,
             playbackTime: state => state.media.playbackTime,
+            srcLoading: state => state.media.srcLoading,
         }),
     },
     watch: {
@@ -288,11 +302,20 @@ export default {
             if (this.dontWatchTime) this.dontWatchTime = false;
             else if (n !== o) this.player.currentTime = this.currentTime;
         },
+        srcLoading() {
+            this.updateAudioPlayer();
+        },
         playing(n, o) {
+            this.updateAudioPlayer();
             if (this.dontWatchPlaying) return this.dontWatchPlaying = false;
             if (n !== o) {
-                if (n) this.player.play();
-                else this.player.pause();
+                if (n) {
+                    this.$refs.audioPlayer.play();
+                    this.player.play();
+                } else {
+                    this.$refs.audioPlayer.pause();
+                    this.player.pause();
+                }
             }
         },
         volume(n, o) {
