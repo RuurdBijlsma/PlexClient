@@ -15,6 +15,7 @@ console.log("is electron?", isElectron);
 const vuexLocal = new VuexPersistence({
     reducer: state => ({
         uiScale: state.uiScale,
+        fancyGraphics: state.fancyGraphics,
         plex: {
             content: state.plex.content,
             publicIp: state.plex.publicIp,
@@ -43,6 +44,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
+        fancyGraphics: true,
         promiseCache: {},
         scrollY: window.scrollY,
         windowWidth: window.innerWidth,
@@ -70,6 +72,7 @@ export default new Vuex.Store({
         snackbars: [],
     },
     mutations: {
+        fancyGraphics: (state, fancyGraphics) => state.fancyGraphics = fancyGraphics,
         windowWidth: (state, windowWidth) => state.windowWidth = windowWidth,
         scrollY: (state, scrollY) => state.scrollY = scrollY,
         removePromiseCache: (state, key) => Vue.delete(state.promiseCache, key),

@@ -112,6 +112,20 @@
                                 <v-switch hide-details dense inset v-model="$vuetify.theme.dark"></v-switch>
                             </v-list-item-action>
                         </v-list-item>
+
+                        <v-list-item color="primary" class="center-list-item">
+                            <v-list-item-icon>
+                                <v-icon>mdi-bird</v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-content>
+                                <v-list-item-title>
+                                    <span>Fancy graphics</span>
+                                </v-list-item-title>
+                            </v-list-item-content>
+                            <v-list-item-action>
+                                <v-switch hide-details dense inset v-model="$store.state.fancyGraphics"></v-switch>
+                            </v-list-item-action>
+                        </v-list-item>
                     </v-list>
                 </v-menu>
                 <div v-if="platform === 'electron'">

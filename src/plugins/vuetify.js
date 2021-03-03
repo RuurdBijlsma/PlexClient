@@ -23,7 +23,7 @@ export default new Vuetify({
             },
             light: {
                 // primary: '#ff7800',
-                primary: '#131313',
+                primary: '#373737',
                 foreground: '#17181a',
                 hardBackground: '#ffffff',
                 softForeground: '#353535',

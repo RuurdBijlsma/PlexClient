@@ -1,9 +1,5 @@
 <template>
-    <div class="main-deck mt-3" v-if="item" :style="{
-                '--imgHeight': Math.round(imgHeight) + 'px',
-                '--imgWidth': Math.round(imgWidth) + 'px',
-                backdropFilter: `blur(40px) brightness(${$vuetify.theme.dark ? '150' : '110'}%) saturate(150%)`,
-            }">
+    <div class="main-deck mt-3" v-if="item" :style="cardStyle">
         <div class="main-info">
             <div v-if="item.type === 'episode'">
                 <router-link class="ellipsis" :to="`/show/${item.grandparentRatingKey}`" no-style>
@@ -51,6 +47,7 @@ import DataHeader from "@/components/DataHeader";
 import EpisodeLink from "@/components/EpisodeLink";
 import MediaItemMenu from "@/components/MediaItemMenu";
 import PlayFab from "@/components/PlayFab";
+import {mapGetters, mapState} from "vuex";
 
 export default {
     name: "DataCard",
@@ -66,6 +63,20 @@ export default {
         },
     },
     computed: {
+        cardStyle() {
+            if (!this.fancyGraphics) {
+                return {
+                    '--imgHeight': Math.round(this.imgHeight) + 'px',
+                    '--imgWidth': Math.round(this.imgWidth) + 'px',
+                    backgroundColor: this.themeColors.softBackground,
+                };
+            }
+            return {
+                '--imgHeight': Math.round(this.imgHeight) + 'px',
+                '--imgWidth': Math.round(this.imgWidth) + 'px',
+                backdropFilter: `blur(40px) brightness(${this.$vuetify.theme.dark ? '150' : '110'}%) saturate(150%)`,
+            };
+        },
         viewProgress() {
             return this.item.viewOffset / this.item.duration;
         },
@@ -75,6 +86,10 @@ export default {
         mainThumb() {
             return (this.item?.type === 'movie' ? this.item?.art : this.item?.thumb);
         },
+        ...mapGetters(['themeColors']),
+        ...mapState({
+            fancyGraphics: state => state.fancyGraphics,
+        })
     },
 }
 </script>

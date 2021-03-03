@@ -9,7 +9,7 @@
             '--softerBackground':themeColors.softerBackground,
             '--secondary': themeColors.secondary,
         }">
-        <div>
+        <div v-if="fancyGraphics">
             <div class="background" :style="{
                     backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
                     transition: `background-image ${bgTransition}`,
@@ -217,6 +217,7 @@ export default {
         },
         ...mapGetters(['themeColors', 'canQuery', 'canSkipForwards', 'canSkipBackwards']),
         ...mapState({
+            fancyGraphics: state => state.fancyGraphics,
             sections: state => state.plex.content.sections,
             platform: state => state.platform.type,
             server: state => state.plex.server,
@@ -304,7 +305,7 @@ a[no-style]:hover {
 }
 
 .blur {
-    backdrop-filter: blur(calc(10px)) saturate(130%);
+    backdrop-filter: blur(calc(15px)) saturate(130%);
 }
 
 .gradient {

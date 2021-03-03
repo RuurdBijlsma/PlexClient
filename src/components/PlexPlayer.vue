@@ -2,10 +2,12 @@
     <div ref="playerContainer"
          v-if="item"
          :class="{
+             'dark-theme': $vuetify.theme.dark,
              'electron': platformType === 'electron',
              'big-screen': bigScreen,
              'small-screen': !bigScreen,
              'hide-controls': hideControls && bigScreen && !mouseOnControls && playing,
+             'fancy-graphics': fancyGraphics,
          }"
          :style="{
             '--controlsHeight': controlsHeight + 'px',
@@ -35,7 +37,7 @@
                     v-if="item"
                     :key="item.key"/>
         <v-sheet
-            :color="bigScreen ? 'transparent' : 'default'"
+            :color="bigScreen ? 'transparent' : 'hardBackground'"
             :dark="bigScreen"
             v-if="item !== null"
             ref="controls"
@@ -275,7 +277,7 @@ export default {
         volumeIcon() {
             if (this.muted)
                 return 'mdi-volume-mute';
-            if(this.volume < 0.5)
+            if (this.volume < 0.5)
                 return 'mdi-volume-low';
             return 'mdi-volume-high';
         },
@@ -298,7 +300,8 @@ export default {
             currentTime: state => state.media.currentTime,
             srcLoading: state => state.media.srcLoading,
             item: state => state.media.context.item,
-            shuffle: state=>state.media.shuffle,
+            shuffle: state => state.media.shuffle,
+            fancyGraphics: state => state.fancyGraphics,
         }),
     },
     watch: {
@@ -319,13 +322,21 @@ export default {
     left: 0;
     width: 100%;
     height: 40px;
-    backdrop-filter: blur(30px) saturate(80%) brightness(80%);
     transition: opacity 0.1s;
     cursor: auto !important;
+    background-color: var(--softBackground);
+}
+
+.fancy-graphics .player-app-bar {
+    background-color: transparent;
+    backdrop-filter: blur(30px) saturate(80%) brightness(80%);
 }
 
 .hide-controls .player-app-bar {
-    opacity: 0.7;
+    opacity: 0.6;
+}
+
+.fancy-graphics.hide-controls .player-app-bar {
     backdrop-filter: blur(10px) saturate(90%) brightness(90%);
 }
 
@@ -370,12 +381,17 @@ export default {
 }
 
 .big-screen .plex-player {
-    backdrop-filter: blur(35px) saturate(80%) brightness(80%);
-    background-image: linear-gradient(to top, rgba(20, 20, 20, 0.4), rgba(20, 20, 20, 0.2));
-    z-index: 51;
     padding-left: 10px;
+    z-index: 51;
     max-width: 600px;
     left: calc(50% - 300px);
+    background-color: var(--softBackground) !important;
+}
+
+.big-screen.fancy-graphics .plex-player {
+    background-color: transparent !important;
+    background-image: linear-gradient(to top, rgba(20, 20, 20, 0.4), rgba(20, 20, 20, 0.2));
+    backdrop-filter: blur(35px) saturate(80%) brightness(80%);
 }
 
 .video-container {
