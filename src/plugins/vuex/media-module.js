@@ -150,7 +150,7 @@ export default {
             return state.controlsHeight - 10;
         },
         usePlayer: (state, getters, rootState) => {
-            // return 'hls';
+            return 'hls';
             if (rootState.platform.type === 'electron') {
                 return 'vlc';
             } else {

@@ -66,6 +66,7 @@ export default {
         markedWatched: false,
         destroyed: false,
         playbackInterval: -1,
+        ignoreTimeUpdate: true,
     }),
     beforeDestroy() {
         this.$store.commit('currentTime', 0);
@@ -132,11 +133,14 @@ export default {
                     console.warn("this shouldnt happen", this.hlsPlayer, "hlsplayer is NOT null")
                 }
                 let startPosition = this.item.viewOffset / 1000;
-                if (isNaN(startPosition))
-                    startPosition = this.currentTime;
+                if (!isNaN(startPosition)) {
+                    console.log('ignore time update = true');
+                    this.ignoreTimeUpdate = true;
+                    this.$store.commit('currentTime', startPosition);
+                }
 
                 this.hlsPlayer = new Hls({
-                    startPosition: startPosition,
+                    startPosition: this.currentTime,
                     progressive: true,
                     lowLatencyMode: true,
                     maxBufferLength: 120,
@@ -225,6 +229,11 @@ export default {
         },
         timeUpdate() {
             if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime)) {
+                console.log('ignoretimeupdate', this.ignoreTimeUpdate);
+                if (this.player.currentTime === 0 && this.item.viewOffset && this.ignoreTimeUpdate)
+                    return;
+                console.log("ignoretimeupdate = false");
+                this.ignoreTimeUpdate = false;
                 this.dontWatchTime = true;
                 this.$store.commit('currentTime', this.player?.currentTime);
             }

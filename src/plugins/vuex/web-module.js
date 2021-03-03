@@ -14,9 +14,9 @@ export default {
         },
         async minimizeWindow({}) {
         },
-        initializePlatform: async ({state, commit, dispatch, getters, rootState}) => {
+        initializePlatform: async ({}) => {
         },
-        setPlatformPlaying: ({state}, playing) => {
+        updateThumbar: ({}) => {
         },
         resetPlexLogin({state, commit}) {
             if (state.channel !== null) {

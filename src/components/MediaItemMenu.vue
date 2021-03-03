@@ -13,12 +13,6 @@
             </v-btn>
         </template>
         <v-list dense :dark="dark">
-            <v-list-item v-if="canPlay" @click="togglePlay">
-                <v-list-item-icon>
-                    <v-icon>mdi-play-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Play</v-list-item-title>
-            </v-list-item>
             <v-list-item v-if="isParent" @click="shuffle">
                 <v-list-item-icon>
                     <v-icon>mdi-shuffle</v-icon>

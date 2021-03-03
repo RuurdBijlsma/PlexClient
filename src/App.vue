@@ -13,7 +13,7 @@
             <div class="background" :style="{
                     backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
                     transition: `background-image ${bgTransition}`,
-                    maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.7 : 0.6}) 95%)`,
+                    maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.3 : 0.2}) 10%, rgba(0, 0, 0, ${$vuetify.theme.dark ? 0.8 : 0.8}) 95%)`,
                 }"/>
             <div class="blur"/>
             <div class="gradient" :scrolled="scrollY > 50"/>
@@ -55,7 +55,6 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
-// add play pause next prev buttons in taskbar preview Electron
 // make work on https (cert name invalid on plex.ruurd.dev)
 // Ask to resume from previous position when playing item
 // some components could be merged (show & movie)
@@ -83,6 +82,7 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// add play pause next prev buttons in taskbar preview Electron
 // Loading /shows for the first time doesn't load
 // vlc volume bug
 // Implement video player (video for web, vlc-video for electron) (big work)
@@ -172,6 +172,7 @@ export default {
         });
 
         this.$store.restored.then(() => {
+            this.initializePlatform();
             if (this.$route.path !== '/settings' && this.server === null)
                 this.$router.push('/settings');
             if (this.canQuery) {
@@ -205,7 +206,8 @@ export default {
             if (e.key === 'r' && e.ctrlKey)
                 location.reload();
         },
-        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp', 'updateSections', 'updatePlaylists', 'setMetadata']),
+        ...mapActions(['updateUserInfo', 'updateServices', 'updatePublicIp',
+            'updateSections', 'updatePlaylists', 'setMetadata', 'updateThumbar', 'initializePlatform']),
     },
     computed: {
         bigScreen() {
@@ -213,7 +215,7 @@ export default {
                 return false;
             return this.$route.query.player === '1';
         },
-        ...mapGetters(['themeColors', 'canQuery']),
+        ...mapGetters(['themeColors', 'canQuery', 'canSkipForwards', 'canSkipBackwards']),
         ...mapState({
             sections: state => state.plex.content.sections,
             platform: state => state.platform.type,
@@ -221,9 +223,26 @@ export default {
             scrollY: state => state.scrollY,
             windowWidth: state => state.windowWidth,
             activeItem: state => state.media.context.item,
+            playing: state => state.media.playing,
+            srcLoading: state => state.media.srcLoading,
         }),
     },
     watch: {
+        canSkipBackwards() {
+            this.updateThumbar();
+        },
+        canSkipForwards() {
+            this.updateThumbar();
+        },
+        activeItem() {
+            this.updateThumbar();
+        },
+        srcLoading() {
+            this.updateThumbar();
+        },
+        playing() {
+            this.updateThumbar();
+        },
         bigScreen() {
             if (this.bigScreen)
                 document.documentElement.style.overflowY = 'hidden';
@@ -285,7 +304,7 @@ a[no-style]:hover {
 }
 
 .blur {
-    backdrop-filter: blur(calc(10px + 2vw)) saturate(120%);
+    backdrop-filter: blur(calc(10px)) saturate(130%);
 }
 
 .gradient {

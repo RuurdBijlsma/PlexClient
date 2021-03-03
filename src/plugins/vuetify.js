@@ -12,7 +12,8 @@ export default new Vuetify({
         dark,
         themes: {
             dark: {
-                primary: '#d46817',
+                // primary: '#d46817',
+                primary: '#ca4205',
                 foreground: '#ffffff',
                 hardBackground: '#000000',
                 softForeground: '#d6d6d6',
@@ -21,7 +22,8 @@ export default new Vuetify({
                 secondary: '#4a1bcf',
             },
             light: {
-                primary: '#ff7800',
+                // primary: '#ff7800',
+                primary: '#131313',
                 foreground: '#17181a',
                 hardBackground: '#ffffff',
                 softForeground: '#353535',

@@ -1,4 +1,4 @@
-import electron, {remote, shell} from 'electron'
+import electron, {remote, shell, nativeImage} from 'electron'
 import path from "path";
 
 const nodeFetch = window.require('node-fetch');
@@ -9,47 +9,66 @@ export default {
     state: {
         httpServer: null,
         type: 'electron',
-        playingIcons: [],
-        pausedIcons: [],
         port: 29672,
+        images: {
+            play: {enabled: null, disabled: null},
+            pause: {enabled: null, disabled: null},
+            prev: {enabled: null, disabled: null},
+            next: {enabled: null, disabled: null},
+        },
     },
     mutations: {
+        images: (state, images) => state.images = images,
         httpServer: (state, httpServer) => state.httpServer = httpServer,
-        playIcons(state, {playIcon, pauseIcon, prevIcon, nextIcon}) {
-            state.playingIcons = [prevIcon, pauseIcon, nextIcon];
-            state.pausedIcons = [prevIcon, playIcon, nextIcon];
-        },
     },
     getters: {
         betterFetch: () => () => nodeFetch,
     },
     actions: {
-        async initializePlatform({state, commit, dispatch, getters, rootState}) {
-            let playIcon = {
-                tooltip: 'Play',
-                icon: path.join(__static, '/img/playicon.png'),
-                click: () => dispatch('play'),
-            };
-            let pauseIcon = {
-                tooltip: 'Play',
-                icon: path.join(__static, '/img/pauseicon.png'),
-                click: () => dispatch('pause'),
-            };
-            let prevIcon = {
-                tooltip: 'Previous Song',
-                icon: path.join(__static, '/img/previcon.png'),
-                click: () => dispatch('skip', -1),
-            };
-            let nextIcon = {
-                tooltip: 'Next Song',
-                icon: path.join(__static, '/img/nexticon.png'),
-                click: () => dispatch('skip', 1),
-            };
-            commit('playIcons', {playIcon, pauseIcon, prevIcon, nextIcon});
+        async initializePlatform({commit, dispatch, state}) {
+            const getIcon = icon => nativeImage.createFromPath(path.join(__static, `img/${icon}.png`));
+            commit('images', {
+                play: {enabled: getIcon('playicon'), disabled: getIcon('playicon-disabled')},
+                pause: {enabled: getIcon('pauseicon'), disabled: getIcon('pauseicon-disabled')},
+                prev: {enabled: getIcon('previcon'), disabled: getIcon('previcon-disabled')},
+                next: {enabled: getIcon('nexticon'), disabled: getIcon('nexticon-disabled')},
+            });
+            console.log("Images", state.images)
+            await dispatch('updateThumbar');
         },
-        setPlatformPlaying: ({state}, playing, enabled = true) => {
+        updateThumbar: ({state, getters, rootState, dispatch, commit}) => {
             const win = remote.getCurrentWindow();
-            return win.setThumbarButtons(enabled ? playing ? state.playingIcons : state.pausedIcons : []);
+            const enabled = rootState.media.context.item !== null;
+            let icons = [];
+            if (enabled) {
+                const enabledFlags = [];
+                const disabledFlags = ['disabled'];
+                let prevIcon = {
+                    tooltip: getters.canSkipBackwards ? 'Previous' : undefined,
+                    flags: getters.canSkipBackwards ? enabledFlags : disabledFlags,
+                    icon: state.images.prev[getters.canSkipBackwards ? 'enabled' : 'disabled'],
+                    click: () => dispatch('skip', false),
+                };
+                let middleIcon = {
+                    tooltip: rootState.media.srcLoading ? undefined : rootState.media.playing ? 'Pause' : 'Play',
+                    flags: rootState.media.srcLoading ? disabledFlags : enabledFlags,
+                    icon: state.images[rootState.media.playing ? 'pause' : 'play']
+                        [rootState.media.srcLoading ? 'disabled' : 'enabled'],
+                    click: () => commit('playing', !rootState.media.playing),
+                };
+                let nextIcon = {
+                    tooltip: getters.canSkipForwards ? 'Next' : undefined,
+                    flags: getters.canSkipForwards ? enabledFlags : disabledFlags,
+                    icon: state.images.next[getters.canSkipForwards ? 'enabled' : 'disabled'],
+                    click: () => dispatch('skip', true),
+                };
+                icons.push(prevIcon, middleIcon, nextIcon);
+            }
+            if (icons.includes(null))
+                return;
+            let success = win.setThumbarButtons(icons);
+            console.log("update thumbar success?", success, icons, win);
+            return success;
         },
         async openDevTools({}) {
             remote.getCurrentWindow().openDevTools();
