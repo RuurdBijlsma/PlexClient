@@ -204,7 +204,7 @@ export default {
 .no-cap {
     text-transform: initial !important;
     font-size: 14px !important;
-    font-weight: 300;
+    font-weight: 400 !important;
 }
 
 .header-right {

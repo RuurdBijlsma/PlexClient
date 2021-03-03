@@ -37,9 +37,9 @@
                     v-if="item"
                     :key="item.key"/>
         <v-sheet
-            :color="bigScreen ? 'transparent' : 'hardBackground'"
-            :dark="bigScreen"
+            :color="bigScreen ? fancyGraphics ? 'transparent' : '#111' : 'hardBackground'"
             v-if="item !== null"
+            :dark="bigScreen"
             ref="controls"
             elevation="4"
             @mouseenter="mouseOnControls = true"
@@ -385,11 +385,9 @@ export default {
     z-index: 51;
     max-width: 600px;
     left: calc(50% - 300px);
-    background-color: var(--softBackground) !important;
 }
 
 .big-screen.fancy-graphics .plex-player {
-    background-color: transparent !important;
     background-image: linear-gradient(to top, rgba(20, 20, 20, 0.4), rgba(20, 20, 20, 0.2));
     backdrop-filter: blur(35px) saturate(80%) brightness(80%);
 }

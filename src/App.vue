@@ -9,7 +9,7 @@
             '--softerBackground':themeColors.softerBackground,
             '--secondary': themeColors.secondary,
         }">
-        <div v-if="fancyGraphics">
+        <div>
             <div class="background" :style="{
                     backgroundImage: `url(${bgImg[$vuetify.theme.dark ? 'dark' : 'light']})`,
                     transition: `background-image ${bgTransition}`,
