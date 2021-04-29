@@ -6,6 +6,9 @@ import installExtension, {VUEJS_DEVTOOLS} from 'electron-devtools-installer'
 import path from "path";
 import {autoUpdater} from "electron-updater";
 import log from "electron-log";
+import {installMpv} from 'mpv-video/src/js/mpv-utils';
+
+installMpv(app);
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -26,9 +29,10 @@ async function createWindow() {
         backgroundColor: '#010001',
         icon,
         autoHideMenuBar: true,
+        useContentSize: process.platform !== "linux",
         webPreferences: {
-            webSecurity: true,
             enableRemoteModule: true,
+            plugins: true,
             // Use pluginOptions.nodeIntegration, leave this alone
             // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
             nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION

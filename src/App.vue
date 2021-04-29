@@ -55,6 +55,10 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
+// Fix small window player on mpv
+// Fix starting at certain time on mpv
+// Make watched indication for media items
+
 // make work on https (cert name invalid on plex.ruurd.dev)
 // Ask to resume from previous position when playing item
 // some components could be merged (show & movie)

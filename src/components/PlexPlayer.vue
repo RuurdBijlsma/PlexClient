@@ -65,7 +65,7 @@
                 </div>
                 <div class="plex-volume mr-5" @mousedown.stop="empty" @wheel.prevent="volumeWheel">
                     <v-slider @click:prepend="toggleMute"
-                              :max="usePlayer === 'vlc' ? 2 : 1" :min="0" :step="0.01"
+                              :max="1" :min="0" :step="0.01"
                               dense
                               :color="bigScreen ? '#ddd' : 'primary'"
                               v-model="$store.state.media.volume"
@@ -167,7 +167,7 @@ export default {
             this.seekBy(e.deltaY / -10);
         },
         volumeWheel(e) {
-            let maxVolume = this.usePlayer === 'vlc' ? 2 : 1;
+            let maxVolume = 1;
             let newVolume = this.volume - e.deltaY / 2000;
             this.$store.commit('volume', Math.max(0, Math.min(newVolume, maxVolume)));
         },

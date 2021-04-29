@@ -1,9 +1,9 @@
 <template>
     <div class="plex-video">
-        <vlc-video :src="src"
-                   v-if="usePlayer === 'vlc'"
+        <mpv-video :src="src"
+                   v-if="usePlayer === 'mpv'"
                    class="video"
-                   ref="vlc"
+                   ref="mpv"
                    :width="bigScreen ? 0 : 'auto'"
                    @loadeddata="loadedData"
                    @timeupdate="timeUpdate"
@@ -38,10 +38,6 @@
                }"
                v-else-if="usePlayer === 'hls'"
                class="video"/>
-        <audio :src="`empty.mp3`" v-if="usePlayer === 'vlc'" loop
-               @play="updateMediaData"
-               muted
-               ref="audioPlayer"/>
     </div>
 </template>
 
@@ -50,11 +46,11 @@ import {mapActions, mapGetters, mapState} from "vuex";
 import Utils from "@/js/Utils";
 import Hls from "hls.js";
 
-const vlcComponent = Utils.isElectron ? {VlcVideo: require('./vlc-video/VlcVideo').default} : {};
+const mpvComponent = Utils.isElectron ? {MpvVideo: require('mpv-video').default} : {};
 
 export default {
     name: "PlexVideo",
-    components: {...vlcComponent},
+    components: {...mpvComponent},
     data: () => ({
         lastTimelineUpdate: 0,
         hlsPlayer: null,
@@ -109,18 +105,8 @@ export default {
         this.initSrc();
     },
     methods: {
-        updateAudioPlayer() {
-            if (this.usePlayer === 'vlc') {
-                let ap = this.$refs.audioPlayer;
-                let playing = this.playing && !this.srcLoading;
-                if (playing && ap.paused)
-                    ap.play();
-                else if (!playing && !ap.paused)
-                    ap.pause();
-            }
-        },
         getPlayer() {
-            return this.usePlayer === 'vlc' ? this.$refs.vlc : this.$refs.hls;
+            return this.usePlayer === 'mpv' ? this.$refs.mpv : this.$refs.hls;
         },
         initSrc() {
             this.$store.commit('duration', this.item.duration / 1000 ?? 0);
@@ -130,11 +116,10 @@ export default {
 
             if (this.usePlayer === 'hls') {
                 if (this.hlsPlayer !== null) {
-                    console.warn("this shouldnt happen", this.hlsPlayer, "hlsplayer is NOT null")
+                    console.warn("this shouldn't happen", this.hlsPlayer, "hlsplayer is NOT null")
                 }
                 let startPosition = this.item.viewOffset / 1000;
                 if (!isNaN(startPosition)) {
-                    console.log('ignore time update = true');
                     this.ignoreTimeUpdate = true;
                     this.$store.commit('currentTime', startPosition);
                 }
@@ -208,16 +193,14 @@ export default {
             this.$store.commit('videoRatio', this.player.videoWidth / this.player.videoHeight);
             this.hidePoster = true;
             console.log("VIEW OFFSET", this.item, this.item.viewOffset);
-            if (this.usePlayer === 'vlc') {
+            if (this.usePlayer === 'mpv') {
                 let startPosition = this.item.viewOffset / 1000;
                 if (isNaN(startPosition))
                     startPosition = this.currentTime;
                 this.$store.commit('currentTime', startPosition);
                 if (this.playOnLoad) {
-                    this.$refs.audioPlayer?.play?.();
                     this.player.play();
                 } else {
-                    this.$refs.audioPlayer?.pause?.();
                     this.player.pause();
                 }
             }
@@ -229,10 +212,8 @@ export default {
         },
         timeUpdate() {
             if (this.player?.currentTime !== undefined && !isNaN(this.player?.currentTime)) {
-                console.log('ignoretimeupdate', this.ignoreTimeUpdate);
                 if (this.player.currentTime === 0 && this.item.viewOffset && this.ignoreTimeUpdate)
                     return;
-                console.log("ignoretimeupdate = false");
                 this.ignoreTimeUpdate = false;
                 this.dontWatchTime = true;
                 this.$store.commit('currentTime', this.player?.currentTime);
@@ -270,7 +251,7 @@ export default {
             let src;
             if (this.item === null || !this.canQuery)
                 src = '';
-            else if (this.usePlayer === 'vlc') {
+            else if (this.usePlayer === 'mpv') {
                 // return original part url
                 src = this.originalMkv(this.item);
             } else {
@@ -319,17 +300,13 @@ export default {
             else if (n !== o) this.player.currentTime = this.currentTime;
         },
         srcLoading() {
-            this.updateAudioPlayer();
         },
         playing(n, o) {
-            this.updateAudioPlayer();
             if (this.dontWatchPlaying) return this.dontWatchPlaying = false;
             if (n !== o) {
                 if (n) {
-                    this.$refs.audioPlayer?.play?.();
                     this.player.play();
                 } else {
-                    this.$refs.audioPlayer?.pause?.();
                     this.player.pause();
                 }
             }
