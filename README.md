@@ -1,7 +1,9 @@
 # PleX
 
-For now VLC is required to be in PATH for this the Electron version to work. Also, Windows 64bit only.
-
+For now mpv is not packaged, meaning you need to install the mpv library when using the desktop application:
+* Windows: download [mpv-dev](https://mpv.srsfckn.biz/mpv-dev-latest.7z), unpack, put corresponding `mpv-1.dll` to `C:\Windows\system32`
+* macOS: `brew install mpv`
+* Linux: `apt-get install libmpv1 libavformat-dev`
 ### Home
 ![Home](https://github.com/ruurdbijlsma/PlexClient/blob/master/.gh/home.png?raw=true)
 

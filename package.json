@@ -1,6 +1,6 @@
 {
   "name": "plex-client",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "repository": "https://github.com/RuurdBijlsma/PlexClient",
   "description": "Browse your Plex library and watch your movies or tv shows.",
@@ -17,7 +17,7 @@
   },
   "main": "background.js",
   "dependencies": {
-    "core-js": "^3.6.5",
+    "core-js": "^3.11.1",
     "electron-log": "^4.3.1",
     "electron-updater": "^4.3.5",
     "express": "^4.17.1",
@@ -35,15 +35,15 @@
     "vue-router": "^3.2.0",
     "vuetify": "^2.4.4",
     "vuex": "^3.4.0",
-    "vuex-persist": "^3.1.3",
-    "wcjs-prebuilt": "github:RuurdBijlsma/wcjs-prebuilt",
-    "wrap-chimera": "github:ruurdbijlsma/wrap-chimera"
+    "vuex-persist": "^3.1.3"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.13.8",
+    "@babel/plugin-proposal-optional-chaining": "^7.13.12",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-pwa": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-vuex": "~4.5.0",
+    "@vue/cli-plugin-vuex": "~4.5.12",
     "@vue/cli-service": "~4.5.0",
     "electron": "^11.2.3",
     "electron-devtools-installer": "^3.1.0",
