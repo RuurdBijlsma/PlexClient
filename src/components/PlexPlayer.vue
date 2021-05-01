@@ -32,8 +32,9 @@
             </div>
         </div>
         <plex-video class="video-container" ref="video"
-                    @click.native="enterBigScreen"
+                    @click.native="clickVideo"
                     @dblclick.native="toggleFullscreen"
+                    @ended="endedEvent"
                     v-if="item"
                     :key="item.key"/>
         <v-sheet
@@ -163,6 +164,9 @@ export default {
         document.addEventListener('fullscreenchange', this.changeFullscreen, false);
     },
     methods: {
+        endedEvent() {
+            this.skip(true);
+        },
         seekWheel(e) {
             this.seekBy(e.deltaY / -10);
         },
@@ -185,9 +189,11 @@ export default {
         changeFullscreen() {
             this.fullscreen = document.fullscreenElement === this.$refs.playerContainer;
         },
-        enterBigScreen() {
+        clickVideo() {
             if (!this.bigScreen)
                 this.$router.push({query: {...this.$route.query, player: 1}});
+            else
+                this.togglePlay();
         },
         exitBigScreen() {
             if (this.bigScreen)

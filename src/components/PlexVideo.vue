@@ -4,7 +4,8 @@
                    v-if="usePlayer === 'mpv'"
                    class="video"
                    ref="mpv"
-                   :width="bigScreen ? 0 : 'auto'"
+                   :width="0"
+                   :start-time="startTime"
                    @loadeddata="loadedData"
                    @timeupdate="timeUpdate"
                    @volumechange="volumeChange"
@@ -14,10 +15,11 @@
                    @waiting="buffering"
                    @play="playEvent"
                    @pause="pauseEvent"
+                   @ended="endedEvent"
                    hide-buffering
                    disable-auto-hide-cursor
                    enable-context-menu
-                   autoplay
+                   :autoplay="playOnLoad"
                    :poster="artUrl"
                    cover-poster
                    :dark="$vuetify.theme.dark"/>
@@ -32,6 +34,7 @@
                @waiting="buffering"
                @play="playEvent"
                @pause="pauseEvent"
+               @ended="endedEvent"
                @progress="updateBuffers"
                :style="{
                    backgroundImage: hidePoster ? '' : `url(${artUrl})`,
@@ -109,23 +112,24 @@ export default {
             return this.usePlayer === 'mpv' ? this.$refs.mpv : this.$refs.hls;
         },
         initSrc() {
+            console.log("play on load", this.playOnLoad)
             this.$store.commit('duration', this.item.duration / 1000 ?? 0);
             if (this.src === '')
                 return;
             this.$store.commit('srcLoading', true);
 
+            if (this.startTime !== this.currentTime) {
+                this.ignoreTimeUpdate = true;
+                this.$store.commit('currentTime', this.startTime);
+            }
+
             if (this.usePlayer === 'hls') {
                 if (this.hlsPlayer !== null) {
                     console.warn("this shouldn't happen", this.hlsPlayer, "hlsplayer is NOT null")
                 }
-                let startPosition = this.item.viewOffset / 1000;
-                if (!isNaN(startPosition)) {
-                    this.ignoreTimeUpdate = true;
-                    this.$store.commit('currentTime', startPosition);
-                }
 
                 this.hlsPlayer = new Hls({
-                    startPosition: this.currentTime,
+                    startPosition: this.startTime,
                     progressive: true,
                     lowLatencyMode: true,
                     maxBufferLength: 120,
@@ -166,6 +170,12 @@ export default {
                 });
             }
         },
+        togglePlay() {
+            if (this.bigScreen) {
+                this.$store.commit('playing', !this.playing);
+                this.updateTimeline();
+            }
+        },
         playEvent() {
             if (!this.playing) {
                 this.dontWatchPlaying = true;
@@ -174,11 +184,15 @@ export default {
             }
         },
         pauseEvent() {
+            console.log("Received pause event");
             if (this.playing) {
                 this.dontWatchPlaying = true;
                 this.$store.commit('playing', false);
                 this.updateTimeline();
             }
+        },
+        endedEvent() {
+            this.$emit('ended');
         },
         canPlay() {
             this.$store.commit('srcLoading', false);
@@ -193,18 +207,17 @@ export default {
             this.$store.commit('videoRatio', this.player.videoWidth / this.player.videoHeight);
             this.hidePoster = true;
             console.log("VIEW OFFSET", this.item, this.item.viewOffset);
+
             if (this.usePlayer === 'mpv') {
                 let startPosition = this.item.viewOffset / 1000;
                 if (isNaN(startPosition))
                     startPosition = this.currentTime;
                 this.$store.commit('currentTime', startPosition);
                 if (this.playOnLoad) {
-                    this.player.play();
-                } else {
-                    this.player.pause();
+                    this.$store.commit('playing', true);
                 }
+                this.player.$once('canplaythrough', () => this.$store.commit('playOnLoad', false));
             }
-            setTimeout(() => this.$store.commit('playOnLoad', false), 100);
         },
         volumeChange() {
             this.dontWatchVolume = true;
@@ -246,6 +259,15 @@ export default {
                 width: this.bigScreen ? 1920 : this.videoWidth,
                 height: this.bigScreen ? 1080 : this.videoHeight,
             });
+        },
+        startTime() {
+            let startTime = 0;
+            let startPosition = this.item.viewOffset / 1000;
+            if (!isNaN(startPosition)) {
+                console.log("setting startTime to ", startPosition);
+                startTime = startPosition;
+            }
+            return startTime;
         },
         src() {
             let src;
@@ -297,7 +319,9 @@ export default {
             }
 
             if (this.dontWatchTime) this.dontWatchTime = false;
-            else if (n !== o) this.player.currentTime = this.currentTime;
+            else if (n !== o) {
+                this.player.currentTime = this.currentTime;
+            }
         },
         srcLoading() {
         },
@@ -328,6 +352,7 @@ export default {
 }
 
 .video {
+    cursor: pointer !important;
     width: 100%;
     height: 100%;
     background-size: cover;
