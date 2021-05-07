@@ -34,8 +34,10 @@ export default {
         playing: false,
         playOnLoad: false,
         controlsHeight: 150,
+        initialLoad: true,
     },
     mutations: {
+        initialLoad: (state, initialLoad) => state.initialLoad = initialLoad,
         playbackTime: (state, playbackTime) => state.playbackTime = playbackTime,
         playOnLoad: (state, value) => state.playOnLoad = value,
         clearContext: state => {
@@ -265,7 +267,6 @@ export default {
             dispatch('setMetadata', state.context.item);
         },
         async setMetadata({dispatch, getters, state, commit}, item) {
-            console.log('setting metadata');
             let subtitle = item.type === 'movie' ? item.year : item.grandparentTitle;
             document.title = 'PleX • ' + subtitle + ' - ' + item.title;
 

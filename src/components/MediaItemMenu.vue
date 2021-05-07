@@ -114,7 +114,6 @@ export default {
         },
         async addToExisting(playlist) {
             let result = await this.addToPlaylist({key: this.item.ratingKey, playlistKey: playlist.ratingKey});
-            console.log('add result', result);
             await this.addSnack({text: "Added to playlist", to: `/playlist/${playlist.ratingKey}`});
         },
         async promptCreatePlaylist() {
@@ -127,7 +126,6 @@ export default {
             });
             if (confirmed) {
                 let result = await this.createPlaylist({key: this.item.ratingKey, title: value});
-                console.log("Playlist created", result);
                 await this.addSnack({text: "Playlist created", to: `/playlist/${result.ratingKey}`});
             }
         },

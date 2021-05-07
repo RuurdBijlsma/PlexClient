@@ -55,9 +55,6 @@ import CustomPrompt from "@/components/CustomPrompt";
 import PlexPlayer from "@/components/PlexPlayer";
 
 // TODO
-// Fix small window player on mpv
-// Fix starting at certain time on mpv
-// Make watched indication for media items
 
 // make work on https (cert name invalid on plex.ruurd.dev)
 // Ask to resume from previous position when playing item
@@ -86,6 +83,9 @@ import PlexPlayer from "@/components/PlexPlayer";
 // Add download show/movie for offline functionality
 
 // ----------------------------------------- DONE -----------------------------------------------
+// Make watched indication for media items
+// Fix starting at certain time on mpv
+// Fix small window player on mpv
 // add play pause next prev buttons in taskbar preview Electron
 // Loading /shows for the first time doesn't load
 // vlc volume bug
@@ -184,6 +184,9 @@ export default {
                     this.setMetadata(this.activeItem);
                 this.updateSections();
                 this.updatePlaylists()
+            }
+            if (!this.item) {
+                this.$store.commit('initialLoad', false);
             }
         });
     },

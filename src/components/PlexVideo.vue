@@ -55,6 +55,7 @@ export default {
     name: "PlexVideo",
     components: {...mpvComponent},
     data: () => ({
+        startTime: 0,
         lastTimelineUpdate: 0,
         hlsPlayer: null,
         player: null,
@@ -65,6 +66,7 @@ export default {
         markedWatched: false,
         destroyed: false,
         playbackInterval: -1,
+        src: '',
         ignoreTimeUpdate: true,
     }),
     beforeDestroy() {
@@ -86,22 +88,11 @@ export default {
             if (this.playing)
                 this.$store.commit('playbackTime', this.playbackTime + 1);
         }, 1000);
-        console.log("current time at mount", this.currentTime);
 
-        console.log("Mounted plex video");
         // this.hlsPlayer.startPosition = 0;
-        console.log("HLS SUPPORTED", Hls.isSupported())
-        console.log("Ratio from item", this.item?.Media?.[0]?.aspectRatio)
         this.$store.commit('videoRatio', this.item?.Media?.[0]?.aspectRatio ?? 16 / 9);
 
-        console.log({
-            item: this.item,
-            src: this.src,
-            usedPlayer: this.usePlayer,
-            platform: this.platformType,
-            player: this.player,
-            hlsPlayer: this.hlsPlayer,
-        });
+        this.updateSrcFromItem();
 
         if (this.player)
             this.volumeChange();
@@ -112,16 +103,15 @@ export default {
             return this.usePlayer === 'mpv' ? this.$refs.mpv : this.$refs.hls;
         },
         initSrc() {
-            console.log("play on load", this.playOnLoad)
             this.$store.commit('duration', this.item.duration / 1000 ?? 0);
             if (this.src === '')
                 return;
             this.$store.commit('srcLoading', true);
 
-            if (this.startTime !== this.currentTime) {
-                this.ignoreTimeUpdate = true;
-                this.$store.commit('currentTime', this.startTime);
-            }
+            // if (this.startTime !== this.currentTime) {
+            //     this.ignoreTimeUpdate = true;
+            //     this.$store.commit('currentTime', this.startTime);
+            // }
 
             if (this.usePlayer === 'hls') {
                 if (this.hlsPlayer !== null) {
@@ -136,10 +126,8 @@ export default {
                     maxBufferSize: 500,
                 });
 
-                console.log("Attaching", this.$refs.hls);
                 this.hlsPlayer.attachMedia(this.$refs.hls);
                 this.hlsPlayer.once(Hls.Events.MEDIA_ATTACHED, () => {
-                    console.log("Init src", this.src);
                     if (this.usePlayer === 'hls') {
                         this.hlsPlayer.loadSource(this.src);
                         // this.player?.load();
@@ -184,7 +172,6 @@ export default {
             }
         },
         pauseEvent() {
-            console.log("Received pause event");
             if (this.playing) {
                 this.dontWatchPlaying = true;
                 this.$store.commit('playing', false);
@@ -203,16 +190,10 @@ export default {
         loadedData() {
             if (this.player?.duration !== undefined && !isNaN(this.player?.duration))
                 this.$store.commit('duration', this.player?.duration);
-            console.log('duration', this.duration);
             this.$store.commit('videoRatio', this.player.videoWidth / this.player.videoHeight);
             this.hidePoster = true;
-            console.log("VIEW OFFSET", this.item, this.item.viewOffset);
 
             if (this.usePlayer === 'mpv') {
-                let startPosition = this.item.viewOffset / 1000;
-                if (isNaN(startPosition))
-                    startPosition = this.currentTime;
-                this.$store.commit('currentTime', startPosition);
                 if (this.playOnLoad) {
                     this.$store.commit('playing', true);
                 }
@@ -220,7 +201,6 @@ export default {
             }
         },
         volumeChange() {
-            this.dontWatchVolume = true;
             this.$store.commit('volume', this.player?.volume);
         },
         timeUpdate() {
@@ -245,6 +225,33 @@ export default {
             }
             this.$store.commit('buffers', buffers);
         },
+        updateSrcFromItem() {
+            let src;
+            if (this.item === null || !this.canQuery)
+                src = '';
+            else if (this.usePlayer === 'mpv') {
+                // return original part url
+                src = this.originalMkv(this.item);
+            } else {
+                src = this.originalHls(this.item);
+            }
+
+            let startTime = 0;
+            if (this.initialLoad) {
+                startTime = this.currentTime;
+                this.$store.commit("initialLoad", false);
+            } else {
+                let startPosition = this.item.viewOffset / 1000;
+                if (!isNaN(startPosition)) {
+                    startTime = startPosition;
+                }
+            }
+            this.startTime = startTime;
+
+            setTimeout(() => {
+                this.src = src;
+            }, 100);
+        },
         ...mapActions(['markWatched', 'updateTimeline', 'updateMediaData']),
     },
     computed: {
@@ -259,28 +266,6 @@ export default {
                 width: this.bigScreen ? 1920 : this.videoWidth,
                 height: this.bigScreen ? 1080 : this.videoHeight,
             });
-        },
-        startTime() {
-            let startTime = 0;
-            let startPosition = this.item.viewOffset / 1000;
-            if (!isNaN(startPosition)) {
-                console.log("setting startTime to ", startPosition);
-                startTime = startPosition;
-            }
-            return startTime;
-        },
-        src() {
-            let src;
-            if (this.item === null || !this.canQuery)
-                src = '';
-            else if (this.usePlayer === 'mpv') {
-                // return original part url
-                src = this.originalMkv(this.item);
-            } else {
-                src = this.originalHls(this.item);
-            }
-            console.log('src', src);
-            return src;
         },
         bigScreen() {
             return this.$route.query.player === '1';
@@ -299,6 +284,7 @@ export default {
             muted: state => state.media.muted,
             playOnLoad: state => state.media.playOnLoad,
             playbackTime: state => state.media.playbackTime,
+            initialLoad: state => state.media.initialLoad,
             srcLoading: state => state.media.srcLoading,
         }),
     },
@@ -314,7 +300,6 @@ export default {
 
             if (Math.abs(this.lastTimelineUpdate - this.currentTime) > 10) {
                 this.lastTimelineUpdate = this.currentTime;
-                console.log('set timeline')
                 this.updateTimeline();
             }
 
@@ -336,7 +321,6 @@ export default {
             }
         },
         volume(n, o) {
-            if (this.dontWatchVolume) return this.dontWatchVolume = false;
             if (n !== o) this.player.volume = n;
         },
         muted(n, o) {

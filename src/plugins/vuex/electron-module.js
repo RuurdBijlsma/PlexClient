@@ -33,7 +33,6 @@ export default {
                 prev: {enabled: getIcon('previcon'), disabled: getIcon('previcon-disabled')},
                 next: {enabled: getIcon('nexticon'), disabled: getIcon('nexticon-disabled')},
             });
-            console.log("Images", state.images)
             await dispatch('updateThumbar');
         },
         updateThumbar: ({state, getters, rootState, dispatch, commit}) => {
@@ -67,7 +66,6 @@ export default {
             if (icons.includes(null))
                 return;
             let success = win.setThumbarButtons(icons);
-            console.log("update thumbar success?", success, icons, win);
             return success;
         },
         async openDevTools({}) {

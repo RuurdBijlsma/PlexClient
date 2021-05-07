@@ -15,6 +15,20 @@
                         v-else
                         :width="imgWidth" :height="imgHeight"
                         :src="itemThumb"/>
+            <div class="viewed-count">
+                <v-btn x-small fab color="primary"
+                       v-if="!item.viewCount && !isActive && (itemType === 'movie' || itemType === 'episode')"
+                       class="playing-chip">
+                    <v-icon>
+                        mdi-play-circle-outline
+                    </v-icon>
+                </v-btn>
+                <v-chip label color="primary" small
+                        v-else-if="!isActive && unviewedLeafCount !== 0 && (itemType === 'season' || itemType === 'show')"
+                        class="playing-chip">
+                    {{ unviewedLeafCount }}
+                </v-chip>
+            </div>
             <router-link class="item-buttons" :to="to" :style="{
                 borderRadius: itemRounding,
             }">
@@ -129,6 +143,9 @@ export default {
         },
     },
     computed: {
+        unviewedLeafCount() {
+            return this.item.leafCount - this.item.viewedLeafCount;
+        },
         canPlay() {
             return this.itemCanPlay(this.item);
         },
@@ -284,6 +301,15 @@ export default {
     opacity: 1;
 }
 
+.viewed-count {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: calc(var(--width) / 20);
+}
+
 .item-buttons {
     position: absolute;
     bottom: 0;
@@ -309,6 +335,7 @@ export default {
 }
 
 .playing-chip {
+    font-weight: bolder;
     position: absolute;
     top: calc(var(--width) / 20);
     left: calc(var(--width) / 20);
