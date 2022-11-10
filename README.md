@@ -1,7 +1,7 @@
 # PleX
 
 For now mpv is not packaged, meaning you need to install the mpv library when using the desktop application:
-* Windows: download [mpv-dev](https://mpv.srsfckn.biz/mpv-dev-latest.7z), unpack, put corresponding `mpv-1.dll` to `C:\Windows\system32`
+* Windows: download [mpv-dev](https://sourceforge.net/projects/mpv-player-windows/files/libmpv/mpv-dev-i686-20211031-git-4a80de9.7z/download), unpack, put corresponding `mpv-1.dll` to `C:\Windows\system32`
 * macOS: `brew install mpv`
 * Linux: `apt-get install libmpv1 libavformat-dev`
 ### Home
